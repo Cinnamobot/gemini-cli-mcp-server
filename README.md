@@ -1,5 +1,7 @@
 # Gemini CLI MCP Server
 
+[![CI](https://github.com/Cinnamobot/gemini-cli-mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/Cinnamobot/gemini-cli-mcp-server/actions/workflows/ci.yml)
+
 🇯🇵 **[日本語](README.ja.md)**
 
 A simple MCP server wrapper for Google's Gemini CLI that enables AI assistants to use Gemini's capabilities through the Model Context Protocol.
