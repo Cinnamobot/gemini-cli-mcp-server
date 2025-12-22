@@ -1,4 +1,4 @@
-# MCP Gemini CLI
+# Gemini CLI MCP Server
 
 🇯🇵 **[日本語](README.ja.md)**
 
