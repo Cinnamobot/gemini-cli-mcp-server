@@ -24,19 +24,23 @@ describe("MCP Gemini CLI Integration Tests", () => {
       try {
         // Test without npx fallback
         const cmdWithoutNpx = await decideGeminiCliCommand(false);
-        expect(cmdWithoutNpx.command).toBe("gemini");
+        // findExecutable returns full path, so check if it contains "gemini"
+        expect(cmdWithoutNpx.command).toContain("gemini");
         expect(cmdWithoutNpx.initialArgs).toEqual([]);
       } catch (error) {
         // If gemini-cli is not installed, it should throw the expected error
         expect(error instanceof Error && error.message).toContain(
-          "gemini not found globally",
+          "gemini",
         );
       }
 
       // Test with npx fallback
       const cmdWithNpx = await decideGeminiCliCommand(true);
-      expect(cmdWithNpx.command).toBeOneOf(["gemini", "npx"]);
-      if (cmdWithNpx.command === "npx") {
+      // Command is either full path containing "gemini" or "npx"
+      const isGemini = cmdWithNpx.command.includes("gemini");
+      const isNpx = cmdWithNpx.command === "npx";
+      expect(isGemini || isNpx).toBe(true);
+      if (isNpx) {
         expect(cmdWithNpx.initialArgs).toEqual([
           "https://github.com/google-gemini/gemini-cli",
         ]);

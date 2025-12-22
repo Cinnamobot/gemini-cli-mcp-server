@@ -2,37 +2,72 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { spawn } from "node:child_process";
 import { z } from "zod";
-import { extname } from "node:path";
+import { extname, join } from "node:path";
+import { existsSync, statSync } from "node:fs";
 import { getLocale, t } from "./i18n.js";
+
+/**
+ * Find an executable in PATH, respecting PATHEXT on Windows.
+ * Equivalent to 'which' on Unix or 'where' on Windows,
+ * but properly handles Windows executable extensions.
+ */
+export function findExecutable(name: string): string | null {
+  const isWindows = process.platform === "win32";
+  const pathEnv = process.env.PATH || "";
+  const pathDirs = pathEnv.split(isWindows ? ";" : ":");
+
+  // On Windows, get executable extensions from PATHEXT
+  // Default: .COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC
+  const pathExtList = isWindows
+    ? (process.env.PATHEXT || ".COM;.EXE;.BAT;.CMD").toLowerCase().split(";")
+    : [""];
+
+  for (const dir of pathDirs) {
+    if (!dir) continue;
+
+    for (const ext of pathExtList) {
+      const fullPath = join(dir, name + ext);
+      try {
+        if (existsSync(fullPath)) {
+          const stat = statSync(fullPath);
+          if (stat.isFile()) {
+            // On Unix, also check if executable
+            if (!isWindows) {
+              // Check execute permission (mode & 0o111)
+              if ((stat.mode & 0o111) === 0) continue;
+            }
+            return fullPath;
+          }
+        }
+      } catch {
+        // Ignore errors (permission denied, etc.)
+        continue;
+      }
+    }
+  }
+
+  return null;
+}
 
 // Function to determine the gemini-cli command and its initial arguments
 export async function decideGeminiCliCommand(
   allowNpx: boolean,
 ): Promise<{ command: string; initialArgs: string[] }> {
-  return new Promise((resolve, reject) => {
-    const isWindows = process.platform === "win32";
-    const whichCmd = isWindows ? "where" : "which";
-    const child = spawn(whichCmd, ["gemini"]);
-    child.on("close", (code) => {
-      if (code === 0) {
-        resolve({ command: "gemini", initialArgs: [] });
-      } else if (allowNpx) {
-        resolve({
-          command: "npx",
-          initialArgs: ["https://github.com/google-gemini/gemini-cli"],
-        });
-      } else {
-        reject(
-          new Error(
-            t("errors.geminiNotFound"),
-          ),
-        );
-      }
-    });
-    child.on("error", (err) => {
-      reject(err);
-    });
-  });
+  // Use findExecutable instead of which/where command
+  const geminiPath = findExecutable("gemini");
+
+  if (geminiPath) {
+    return { command: geminiPath, initialArgs: [] };
+  }
+
+  if (allowNpx) {
+    return {
+      command: "npx",
+      initialArgs: ["https://github.com/google-gemini/gemini-cli"],
+    };
+  }
+
+  throw new Error(t("errors.geminiNotFound"));
 }
 
 // Function to execute gemini-cli command
