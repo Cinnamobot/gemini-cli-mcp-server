@@ -214,6 +214,10 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## 🙏 Credits
+
+This project is based on [choplin/mcp-gemini-cli](https://github.com/choplin/mcp-gemini-cli). Thank you for the original implementation!
+
 ## 📋 Changelog
 
 ### [0.3.1] - 2025-07-03

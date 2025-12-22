@@ -228,6 +228,10 @@ bun run format
 
 このプロジェクトは MIT ライセンスの下で公開されています。詳細は LICENSE ファイルをご覧ください。
 
+## 🙏 クレジット
+
+このプロジェクトは [choplin/mcp-gemini-cli](https://github.com/choplin/mcp-gemini-cli) をベースにしています。オリジナルの実装に感謝します！
+
 ## 🔗 関連リンク
 
 - [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)
