@@ -1,42 +1,42 @@
 {
-    "errors": {
-        "geminiNotFound": "geminiがグローバルにインストールされておらず、--allow-npxオプションも指定されていません。",
-        "installGemini": "gemini-cliをグローバルにインストールするか、--allow-npxオプションを使用してください。",
-        "unsupportedFileType": "サポートされていないファイル形式: {extension}。対応形式:",
-        "images": "画像",
-        "text": "テキスト",
-        "documents": "ドキュメント"
+  "errors": {
+    "geminiNotFound": "geminiがグローバルにインストールされておらず、--allow-npxオプションも指定されていません。",
+    "installGemini": "gemini-cliをグローバルにインストールするか、--allow-npxオプションを使用してください。",
+    "unsupportedFileType": "サポートされていないファイル形式: {extension}。対応形式:",
+    "images": "画像",
+    "text": "テキスト",
+    "documents": "ドキュメント"
+  },
+  "tools": {
+    "googleSearch": {
+      "description": "gemini-cliを使用してGoogle検索を実行し、構造化された結果を返します。",
+      "params": {
+        "query": "検索クエリ。",
+        "limit": "返すの最大件数（任意）。",
+        "raw": "URLとスニペット付きの生の検索結果を返す（任意）。",
+        "sandbox": "gemini-cliをサンドボックスモードで実行。",
+        "yolo": "すべてのアクションを自動的に承認する（YOLOモード）。",
+        "model": "使用するGeminiモデル。推奨: \"gemini-2.5-pro\"（デフォルト）または \"gemini-2.5-flash\"。両モデルともGoogleログインで動作確認済み。"
+      }
     },
-    "tools": {
-        "googleSearch": {
-            "description": "gemini-cliを使用してGoogle検索を実行し、構造化された結果を返します。",
-            "params": {
-                "query": "検索クエリ。",
-                "limit": "返すの最大件数（任意）。",
-                "raw": "URLとスニペット付きの生の検索結果を返す（任意）。",
-                "sandbox": "gemini-cliをサンドボックスモードで実行。",
-                "yolo": "すべてのアクションを自動的に承認する（YOLOモード）。",
-                "model": "使用するGeminiモデル。推奨: \"gemini-2.5-pro\"（デフォルト）または \"gemini-2.5-flash\"。両モデルともGoogleログインで動作確認済み。"
-            }
-        },
-        "chat": {
-            "description": "gemini-cliとチャット会話を行います。",
-            "params": {
-                "prompt": "チャット会話のプロンプト。",
-                "sandbox": "gemini-cliをサンドボックスモードで実行。",
-                "yolo": "すべてのアクションを自動的に承認する（YOLOモード）。",
-                "model": "使用するGeminiモデル。推奨: \"gemini-2.5-pro\"（デフォルト）または \"gemini-2.5-flash\"。両モデルともGoogleログインで動作確認済み。"
-            }
-        },
-        "analyzeFile": {
-            "description": "gemini-cliを使用してファイルを分析します。対応ファイル形式: 画像 (.png, .jpg, .jpeg, .gif, .webp, .svg, .bmp)、テキスト (.txt, .md, .text)、ドキュメント (.pdf)",
-            "params": {
-                "filePath": "分析するファイルの絶対パス。対応: .png, .jpg, .jpeg, .gif, .webp, .svg, .bmp, .pdf, .txt, .md, .text",
-                "prompt": "ファイル分析の追加指示。指定しない場合、Geminiが一般的な分析を提供します。",
-                "sandbox": "gemini-cliをサンドボックスモードで実行。",
-                "yolo": "すべてのアクションを自動的に承認する（YOLOモード）。",
-                "model": "使用するGeminiモデル。推奨: \"gemini-2.5-pro\"（デフォルト）または \"gemini-2.5-flash\"。両モデルともGoogleログインで動作確認済み。"
-            }
-        }
+    "chat": {
+      "description": "gemini-cliとチャット会話を行います。",
+      "params": {
+        "prompt": "チャット会話のプロンプト。",
+        "sandbox": "gemini-cliをサンドボックスモードで実行。",
+        "yolo": "すべてのアクションを自動的に承認する（YOLOモード）。",
+        "model": "使用するGeminiモデル。推奨: \"gemini-2.5-pro\"（デフォルト）または \"gemini-2.5-flash\"。両モデルともGoogleログインで動作確認済み。"
+      }
+    },
+    "analyzeFile": {
+      "description": "gemini-cliを使用してファイルを分析します。対応ファイル形式: 画像 (.png, .jpg, .jpeg, .gif, .webp, .svg, .bmp)、テキスト (.txt, .md, .text)、ドキュメント (.pdf)",
+      "params": {
+        "filePath": "分析するファイルの絶対パス。対応: .png, .jpg, .jpeg, .gif, .webp, .svg, .bmp, .pdf, .txt, .md, .text",
+        "prompt": "ファイル分析の追加指示。指定しない場合、Geminiが一般的な分析を提供します。",
+        "sandbox": "gemini-cliをサンドボックスモードで実行。",
+        "yolo": "すべてのアクションを自動的に承認する（YOLOモード）。",
+        "model": "使用するGeminiモデル。推奨: \"gemini-2.5-pro\"（デフォルト）または \"gemini-2.5-flash\"。両モデルともGoogleログインで動作確認済み。"
+      }
     }
+  }
 }

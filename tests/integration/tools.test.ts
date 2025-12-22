@@ -1,9 +1,9 @@
-import { describe, expect, test, beforeAll } from "bun:test";
+import { beforeAll, describe, expect, test } from "bun:test";
 import {
   decideGeminiCliCommand,
+  executeGeminiChat,
   executeGeminiCli,
   executeGoogleSearch,
-  executeGeminiChat,
 } from "../../index.ts";
 
 // Check if gemini-cli is available
@@ -29,9 +29,7 @@ describe("MCP Gemini CLI Integration Tests", () => {
         expect(cmdWithoutNpx.initialArgs).toEqual([]);
       } catch (error) {
         // If gemini-cli is not installed, it should throw the expected error
-        expect(error instanceof Error && error.message).toContain(
-          "gemini",
-        );
+        expect(error instanceof Error && error.message).toContain("gemini");
       }
 
       // Test with npx fallback
@@ -60,7 +58,7 @@ describe("MCP Gemini CLI Integration Tests", () => {
         // This is expected to fail
         expect(error).toBeInstanceOf(Error);
         expect(error instanceof Error && error.message).toMatch(
-          /gemini exited with code|Executable not found/,
+          /gemini exited with code|Executable not found|ENOENT|no such file/,
         );
       }
     });

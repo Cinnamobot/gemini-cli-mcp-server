@@ -1,42 +1,42 @@
 {
-    "errors": {
-        "geminiNotFound": "gemini not found globally and --allow-npx option not specified.",
-        "installGemini": "Please install gemini-cli globally or use --allow-npx option.",
-        "unsupportedFileType": "Unsupported file type: {extension}. Supported types are:",
-        "images": "Images",
-        "text": "Text",
-        "documents": "Documents"
+  "errors": {
+    "geminiNotFound": "gemini not found globally and --allow-npx option not specified.",
+    "installGemini": "Please install gemini-cli globally or use --allow-npx option.",
+    "unsupportedFileType": "Unsupported file type: {extension}. Supported types are:",
+    "images": "Images",
+    "text": "Text",
+    "documents": "Documents"
+  },
+  "tools": {
+    "googleSearch": {
+      "description": "Performs a Google search using gemini-cli and returns structured results.",
+      "params": {
+        "query": "The search query.",
+        "limit": "Maximum number of results to return (optional).",
+        "raw": "Return raw search results with URLs and snippets (optional).",
+        "sandbox": "Run gemini-cli in sandbox mode.",
+        "yolo": "Automatically accept all actions (aka YOLO mode).",
+        "model": "The Gemini model to use. Recommended: \"gemini-2.5-pro\" (default) or \"gemini-2.5-flash\". Both models are confirmed to work with Google login."
+      }
     },
-    "tools": {
-        "googleSearch": {
-            "description": "Performs a Google search using gemini-cli and returns structured results.",
-            "params": {
-                "query": "The search query.",
-                "limit": "Maximum number of results to return (optional).",
-                "raw": "Return raw search results with URLs and snippets (optional).",
-                "sandbox": "Run gemini-cli in sandbox mode.",
-                "yolo": "Automatically accept all actions (aka YOLO mode).",
-                "model": "The Gemini model to use. Recommended: \"gemini-2.5-pro\" (default) or \"gemini-2.5-flash\". Both models are confirmed to work with Google login."
-            }
-        },
-        "chat": {
-            "description": "Engages in a chat conversation with gemini-cli.",
-            "params": {
-                "prompt": "The prompt for the chat conversation.",
-                "sandbox": "Run gemini-cli in sandbox mode.",
-                "yolo": "Automatically accept all actions (aka YOLO mode).",
-                "model": "The Gemini model to use. Recommended: \"gemini-2.5-pro\" (default) or \"gemini-2.5-flash\". Both models are confirmed to work with Google login."
-            }
-        },
-        "analyzeFile": {
-            "description": "Analyzes files using gemini-cli. Supported file types: Images (.png, .jpg, .jpeg, .gif, .webp, .svg, .bmp), Text (.txt, .md, .text), Documents (.pdf)",
-            "params": {
-                "filePath": "The absolute path to the file to analyze. Supported: .png, .jpg, .jpeg, .gif, .webp, .svg, .bmp, .pdf, .txt, .md, .text",
-                "prompt": "Additional instructions for analyzing the file. If not provided, Gemini will provide a general analysis.",
-                "sandbox": "Run gemini-cli in sandbox mode.",
-                "yolo": "Automatically accept all actions (aka YOLO mode).",
-                "model": "The Gemini model to use. Recommended: \"gemini-2.5-pro\" (default) or \"gemini-2.5-flash\". Both models are confirmed to work with Google login."
-            }
-        }
+    "chat": {
+      "description": "Engages in a chat conversation with gemini-cli.",
+      "params": {
+        "prompt": "The prompt for the chat conversation.",
+        "sandbox": "Run gemini-cli in sandbox mode.",
+        "yolo": "Automatically accept all actions (aka YOLO mode).",
+        "model": "The Gemini model to use. Recommended: \"gemini-2.5-pro\" (default) or \"gemini-2.5-flash\". Both models are confirmed to work with Google login."
+      }
+    },
+    "analyzeFile": {
+      "description": "Analyzes files using gemini-cli. Supported file types: Images (.png, .jpg, .jpeg, .gif, .webp, .svg, .bmp), Text (.txt, .md, .text), Documents (.pdf)",
+      "params": {
+        "filePath": "The absolute path to the file to analyze. Supported: .png, .jpg, .jpeg, .gif, .webp, .svg, .bmp, .pdf, .txt, .md, .text",
+        "prompt": "Additional instructions for analyzing the file. If not provided, Gemini will provide a general analysis.",
+        "sandbox": "Run gemini-cli in sandbox mode.",
+        "yolo": "Automatically accept all actions (aka YOLO mode).",
+        "model": "The Gemini model to use. Recommended: \"gemini-2.5-pro\" (default) or \"gemini-2.5-flash\". Both models are confirmed to work with Google login."
+      }
     }
+  }
 }

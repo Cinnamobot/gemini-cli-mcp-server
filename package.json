@@ -46,7 +46,9 @@
     "lint:md:fix": "markdownlint-cli2 --fix '**/*.md'",
     "format": "biome format --write .",
     "test": "bun test",
+    "test:unit": "bun test tests/unit",
     "test:integration": "bun test tests/integration",
+    "check": "biome ci .",
     "prepare": "bun run build:prod && lefthook install"
   },
   "devDependencies": {

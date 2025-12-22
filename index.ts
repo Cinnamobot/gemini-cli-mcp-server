@@ -1,9 +1,9 @@
+import { spawn } from "node:child_process";
+import { existsSync, statSync } from "node:fs";
+import { extname, join } from "node:path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { spawn } from "node:child_process";
 import { z } from "zod";
-import { extname, join } from "node:path";
-import { existsSync, statSync } from "node:fs";
 import { getLocale, t } from "./i18n.js";
 
 /**
@@ -41,7 +41,6 @@ export function findExecutable(name: string): string | null {
         }
       } catch {
         // Ignore errors (permission denied, etc.)
-        continue;
       }
     }
   }
@@ -273,9 +272,9 @@ export async function executeGeminiAnalyzeFile(
     const locale = getLocale();
     throw new Error(
       `${t("errors.unsupportedFileType", { extension: fileExtension })}\n` +
-      `${locale.errors.images}: ${SUPPORTED_IMAGE_EXTENSIONS.join(", ")}\n` +
-      `${locale.errors.text}: ${SUPPORTED_TEXT_EXTENSIONS.join(", ")}\n` +
-      `${locale.errors.documents}: ${SUPPORTED_DOCUMENT_EXTENSIONS.join(", ")}`,
+        `${locale.errors.images}: ${SUPPORTED_IMAGE_EXTENSIONS.join(", ")}\n` +
+        `${locale.errors.text}: ${SUPPORTED_TEXT_EXTENSIONS.join(", ")}\n` +
+        `${locale.errors.documents}: ${SUPPORTED_DOCUMENT_EXTENSIONS.join(", ")}`,
     );
   }
 
@@ -313,9 +312,7 @@ async function main() {
     console.error(
       `Error: ${error instanceof Error ? error.message : String(error)}`,
     );
-    console.error(
-      t("errors.installGemini"),
-    );
+    console.error(t("errors.installGemini"));
     process.exit(1);
   }
 
@@ -380,14 +377,8 @@ async function main() {
           .boolean()
           .optional()
           .describe(locale.tools.chat.params.sandbox),
-        yolo: z
-          .boolean()
-          .optional()
-          .describe(locale.tools.chat.params.yolo),
-        model: z
-          .string()
-          .optional()
-          .describe(locale.tools.chat.params.model),
+        yolo: z.boolean().optional().describe(locale.tools.chat.params.yolo),
+        model: z.string().optional().describe(locale.tools.chat.params.model),
       },
     },
     async (args) => {
@@ -409,9 +400,7 @@ async function main() {
     {
       description: locale.tools.analyzeFile.description,
       inputSchema: {
-        filePath: z
-          .string()
-          .describe(locale.tools.analyzeFile.params.filePath),
+        filePath: z.string().describe(locale.tools.analyzeFile.params.filePath),
         prompt: z
           .string()
           .optional()
