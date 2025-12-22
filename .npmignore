@@ -1,0 +1,37 @@
+# Source files
+*.ts
+!*.d.ts
+
+# Configuration files
+tsconfig.json
+biome.json
+.gitignore
+.python-version
+
+# Development files
+tests/
+bun.lockb
+
+# Build artifacts
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Git
+.git/
+.gitattributes
+
+# Documentation source
+docs/
+
+# Example files
+examples/
