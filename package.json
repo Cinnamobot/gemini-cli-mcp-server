@@ -38,8 +38,8 @@
   "scripts": {
     "start": "bun run index.ts",
     "dev": "bun --watch run index.ts",
-    "build": "rm -rf dist && bun build --target=node --banner=$'#!/usr/bin/env node\\n' --outdir=dist --sourcemap index.ts",
-    "build:prod": "rm -rf dist && bun build --target=node --banner=$'#!/usr/bin/env node\\n' --outdir=dist --minify --sourcemap=none index.ts",
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && bun build --target=node --outdir=dist --sourcemap index.ts && node -e \"const f='dist/index.js';require('fs').writeFileSync(f,'#!/usr/bin/env node\\n'+require('fs').readFileSync(f))\" && node -e \"require('fs').cpSync('locales','dist/locales',{recursive:true})\"",
+    "build:prod": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && bun build --target=node --outdir=dist --minify --sourcemap=none index.ts && node -e \"const f='dist/index.js';require('fs').writeFileSync(f,'#!/usr/bin/env node\\n'+require('fs').readFileSync(f))\" && node -e \"require('fs').cpSync('locales','dist/locales',{recursive:true})\"",
     "lint": "biome lint .",
     "lint:md": "markdownlint-cli2 '**/*.md'",
     "lint:fix": "biome lint --write .",

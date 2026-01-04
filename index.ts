@@ -74,12 +74,25 @@ export async function executeGeminiCli(
   geminiCliCommand: { command: string; initialArgs: string[] },
   args: string[],
 ): Promise<string> {
-  const { command, initialArgs } = geminiCliCommand;
+  let { command, initialArgs } = geminiCliCommand;
   const commandArgs = [...initialArgs, ...args];
+  let shell = false;
+
+  // On Windows, if executing a .cmd or .bat file, we must use shell: true
+  // and quote the command path manually to handle spaces.
+  if (
+    process.platform === "win32" &&
+    (command.toLowerCase().endsWith(".cmd") ||
+      command.toLowerCase().endsWith(".bat"))
+  ) {
+    shell = true;
+    command = `"${command}"`;
+  }
 
   return new Promise((resolve, reject) => {
     const child = spawn(command, commandArgs, {
       stdio: ["pipe", "pipe", "pipe"],
+      shell,
     });
     let stdout = "";
     let stderr = "";
@@ -208,7 +221,7 @@ export async function executeGoogleSearch(args: unknown, allowNpx = false) {
     }
   }
 
-  const cliArgs = ["-p", prompt];
+  const cliArgs = [prompt];
 
   if (parsedArgs.sandbox) {
     cliArgs.push("-s");
@@ -228,7 +241,7 @@ export async function executeGoogleSearch(args: unknown, allowNpx = false) {
 export async function executeGeminiChat(args: unknown, allowNpx = false) {
   const parsedArgs = GeminiChatParametersSchema.parse(args);
   const geminiCliCmd = await decideGeminiCliCommand(allowNpx);
-  const cliArgs = ["-p", parsedArgs.prompt];
+  const cliArgs = [parsedArgs.prompt];
   if (parsedArgs.sandbox) {
     cliArgs.push("-s");
   }
@@ -286,7 +299,7 @@ export async function executeGeminiAnalyzeFile(
     fullPrompt += `\n\n${parsedArgs.prompt}`;
   }
 
-  const cliArgs = ["-p", fullPrompt];
+  const cliArgs = [fullPrompt];
   if (parsedArgs.sandbox) {
     cliArgs.push("-s");
   }

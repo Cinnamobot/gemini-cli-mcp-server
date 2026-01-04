@@ -4,19 +4,11 @@ import {
   executeGeminiChat,
   executeGeminiCli,
   executeGoogleSearch,
+  findExecutable,
 } from "../../index.ts";
 
-// Check if gemini-cli is available
-let isGeminiCliAvailable = false;
-
-beforeAll(async () => {
-  try {
-    await decideGeminiCliCommand(false);
-    isGeminiCliAvailable = true;
-  } catch {
-    isGeminiCliAvailable = false;
-  }
-});
+// Check if gemini-cli is available (synchronous check for test.if)
+const isGeminiCliAvailable = !!findExecutable("gemini");
 
 describe("MCP Gemini CLI Integration Tests", () => {
   describe("gemini-cli detection", () => {
@@ -24,8 +16,8 @@ describe("MCP Gemini CLI Integration Tests", () => {
       try {
         // Test without npx fallback
         const cmdWithoutNpx = await decideGeminiCliCommand(false);
-        // findExecutable returns full path, so check if it contains "gemini"
-        expect(cmdWithoutNpx.command).toContain("gemini");
+        // on Windows it might be cmd.exe
+        expect(cmdWithoutNpx.command).toMatch(/gemini|cmd\.exe/);
         expect(cmdWithoutNpx.initialArgs).toEqual([]);
       } catch (error) {
         // If gemini-cli is not installed, it should throw the expected error
