@@ -37,6 +37,16 @@
         "yolo": "Automatically accept all actions (aka YOLO mode).",
         "model": "The Gemini model to use. Recommended: \"gemini-2.5-pro\" (default) or \"gemini-2.5-flash\". Both models are confirmed to work with Google login."
       }
+    },
+    "executeTask": {
+      "description": "Executes a coding task using Gemini as a sub-agent. Gemini can edit files, generate code, run commands, and perform other development tasks.",
+      "params": {
+        "task": "Description of the task to execute. Be specific about what you want Gemini to do.",
+        "workingDirectory": "Working directory for the task. If not provided, uses current directory.",
+        "sandbox": "Run gemini-cli in sandbox mode.",
+        "yolo": "Automatically accept all actions (aka YOLO mode). Defaults to true for task execution.",
+        "model": "The Gemini model to use. Recommended: \"gemini-2.5-pro\" (default) or \"gemini-2.5-flash\". Both models are confirmed to work with Google login."
+      }
     }
   }
 }

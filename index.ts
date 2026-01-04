@@ -184,6 +184,28 @@ export const GeminiAnalyzeFileParametersSchema = z.object({
     ),
 });
 
+// Zod schema for executeTask tool parameters (sub-coding agent)
+export const GeminiExecuteTaskParametersSchema = z.object({
+  task: z.string().describe("Description of the task to execute. Gemini will perform file edits, code generation, etc."),
+  workingDirectory: z
+    .string()
+    .optional()
+    .describe("Working directory for the task. If not provided, uses current directory."),
+  sandbox: z.boolean().optional().describe("Run gemini-cli in sandbox mode."),
+  yolo: z
+    .boolean()
+    .optional()
+    .default(true)
+    .describe("Automatically accept all actions (aka YOLO mode). Defaults to true for task execution."),
+  model: z
+    .string()
+    .optional()
+    .describe(
+      'The Gemini model to use. Recommended: "gemini-2.5-pro" (default) or "gemini-2.5-flash". Both models are confirmed to work with Google login.',
+    ),
+});
+
+
 // Extracted tool execution functions for testing
 export async function executeGoogleSearch(args: unknown, allowNpx = false) {
   const parsedArgs = GoogleSearchParametersSchema.parse(args);
@@ -285,9 +307,9 @@ export async function executeGeminiAnalyzeFile(
     const locale = getLocale();
     throw new Error(
       `${t("errors.unsupportedFileType", { extension: fileExtension })}\n` +
-        `${locale.errors.images}: ${SUPPORTED_IMAGE_EXTENSIONS.join(", ")}\n` +
-        `${locale.errors.text}: ${SUPPORTED_TEXT_EXTENSIONS.join(", ")}\n` +
-        `${locale.errors.documents}: ${SUPPORTED_DOCUMENT_EXTENSIONS.join(", ")}`,
+      `${locale.errors.images}: ${SUPPORTED_IMAGE_EXTENSIONS.join(", ")}\n` +
+      `${locale.errors.text}: ${SUPPORTED_TEXT_EXTENSIONS.join(", ")}\n` +
+      `${locale.errors.documents}: ${SUPPORTED_DOCUMENT_EXTENSIONS.join(", ")}`,
     );
   }
 
@@ -313,6 +335,91 @@ export async function executeGeminiAnalyzeFile(
   const result = await executeGeminiCli(geminiCliCmd, cliArgs);
   return result;
 }
+
+// Execute a coding task using Gemini as a sub-agent
+export async function executeGeminiTask(args: unknown, allowNpx = false) {
+  const parsedArgs = GeminiExecuteTaskParametersSchema.parse(args);
+  const geminiCliCmd = await decideGeminiCliCommand(allowNpx);
+
+  // Build the task prompt
+  const taskPrompt = parsedArgs.task;
+
+  const cliArgs = [taskPrompt];
+  if (parsedArgs.sandbox) {
+    cliArgs.push("-s");
+  }
+  // Default to yolo mode for task execution
+  if (parsedArgs.yolo !== false) {
+    cliArgs.push("-y");
+  }
+  if (parsedArgs.model) {
+    cliArgs.push("-m", parsedArgs.model);
+  }
+
+  // Execute with working directory if specified
+  const result = await executeGeminiCliWithCwd(
+    geminiCliCmd,
+    cliArgs,
+    parsedArgs.workingDirectory,
+  );
+  return result;
+}
+
+// Extended executeGeminiCli with working directory support
+async function executeGeminiCliWithCwd(
+  geminiCliCommand: { command: string; initialArgs: string[] },
+  args: string[],
+  cwd?: string,
+): Promise<string> {
+  let { command, initialArgs } = geminiCliCommand;
+  const commandArgs = [...initialArgs, ...args];
+  let shell = false;
+
+  // On Windows, if executing a .cmd or .bat file, we must use shell: true
+  // and quote the command path manually to handle spaces.
+  if (
+    process.platform === "win32" &&
+    (command.toLowerCase().endsWith(".cmd") ||
+      command.toLowerCase().endsWith(".bat"))
+  ) {
+    shell = true;
+    command = `"${command}"`;
+  }
+
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, commandArgs, {
+      stdio: ["pipe", "pipe", "pipe"],
+      shell,
+      cwd: cwd || process.cwd(),
+    });
+    let stdout = "";
+    let stderr = "";
+
+    // Close stdin immediately since we're not sending any input
+    child.stdin.end();
+
+    child.stdout.on("data", (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+
+    child.on("close", (code) => {
+      if (code === 0) {
+        resolve(stdout);
+      } else {
+        reject(new Error(`gemini exited with code ${code}: ${stderr}`));
+      }
+    });
+
+    child.on("error", (err) => {
+      reject(err);
+    });
+  });
+}
+
 
 async function main() {
   // Check for --allow-npx argument
@@ -434,6 +541,45 @@ async function main() {
     },
     async (args) => {
       const result = await executeGeminiAnalyzeFile(args, allowNpx);
+      return {
+        content: [
+          {
+            type: "text",
+            text: result,
+          },
+        ],
+      };
+    },
+  );
+
+  // Register executeTask tool (sub-coding agent)
+  server.registerTool(
+    "executeTask",
+    {
+      description: locale.tools.executeTask.description,
+      inputSchema: {
+        task: z.string().describe(locale.tools.executeTask.params.task),
+        workingDirectory: z
+          .string()
+          .optional()
+          .describe(locale.tools.executeTask.params.workingDirectory),
+        sandbox: z
+          .boolean()
+          .optional()
+          .describe(locale.tools.executeTask.params.sandbox),
+        yolo: z
+          .boolean()
+          .optional()
+          .default(true)
+          .describe(locale.tools.executeTask.params.yolo),
+        model: z
+          .string()
+          .optional()
+          .describe(locale.tools.executeTask.params.model),
+      },
+    },
+    async (args) => {
+      const result = await executeGeminiTask(args, allowNpx);
       return {
         content: [
           {
