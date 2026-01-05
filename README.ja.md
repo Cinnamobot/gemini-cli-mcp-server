@@ -9,7 +9,7 @@ Google の [Gemini CLI](https://github.com/google-gemini/gemini-cli) 用シン�
 ## ✨ 機能
 
 - **4つのツール**: `googleSearch`, `chat`, `listSessions`, `analyzeFile`
-- **セッション継続**: セッションIDで過去の会話を再開可能
+- **セッション継続**: セッションIDで過去の会話を再開可能（任意のID指定に対応）
 - **国際化対応**: 日本語/英語サポート
 - **クロスプラットフォーム**: Windows, macOS, Linux 対応
 
@@ -54,7 +54,7 @@ Gemini との会話を行います。
 | パラメータ | 必須 | 説明 |
 |-----------|------|------|
 | `prompt` | ✅ | 会話のプロンプト |
-| `sessionId` | | 過去のセッションを再開 |
+| `sessionId` | | 過去のセッションを再開（"my-task"などの任意IDに対応） |
 | `model` | | Gemini モデル（デフォルト: `gemini-2.5-pro`）|
 
 ### listSessions
@@ -69,6 +69,7 @@ Gemini のマルチモーダル機能を使用してファイルを分析しま�
 |-----------|------|------|
 | `filePath` | ✅ | ファイルの絶対パス |
 | `prompt` | | 分析の追加指示 |
+| `sessionId` | | 過去のセッションを再開（コンテキストを維持） |
 | `model` | | Gemini モデル（デフォルト: `gemini-2.5-pro`）|
 
 **対応ファイル形式:**
@@ -76,6 +77,28 @@ Gemini のマルチモーダル機能を使用してファイルを分析しま�
 - **画像**: PNG, JPG, JPEG, GIF, WEBP, SVG, BMP
 - **テキスト**: TXT, MD
 - **ドキュメント**: PDF
+
+## 💾 セッション管理
+
+**任意のセッションID** (Client ID) を使用して会話を管理できます。サーバーはこれらを Gemini CLI の内部セッションIDに自動的に紐付けます。
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "chat",
+    "arguments": {
+      "prompt": "こんにちは！",
+      "sessionId": "my-task-1"
+    }
+  },
+  "id": 1
+}
+```
+
+- **永続性**: マッピング情報は**メモリ内**に保存されます。MCPサーバーが再起動するとリセットされます（Gemini自体の履歴は残りますが、カスタムIDとのリンクは失われます）。
+- **一覧表示**: `listSessions` を使用してアクティブなマッピングを確認できます。
 
 ## 🌐 言語設定
 
