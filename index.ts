@@ -1,8 +1,8 @@
-import spawn from "cross-spawn";
 import { existsSync, statSync } from "node:fs";
 import { extname, join } from "node:path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import spawn from "cross-spawn";
 import { z } from "zod";
 import { getLocale, t } from "./i18n.js";
 import { SessionManager } from "./session_manager.js";
@@ -563,10 +563,10 @@ async function main() {
       const mappingText =
         Object.entries(mappings).length > 0
           ? `\n\nActive Mappings (Client ID -> Real ID):\n${Object.entries(
-            mappings,
-          )
-            .map(([k, v]) => `- ${k} -> ${v}`)
-            .join("\n")}`
+              mappings,
+            )
+              .map(([k, v]) => `- ${k} -> ${v}`)
+              .join("\n")}`
           : "";
 
       return {

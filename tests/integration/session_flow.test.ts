@@ -1,25 +1,25 @@
-import { describe, expect, test, beforeAll } from "bun:test";
+import { beforeAll, describe, expect, test } from "bun:test";
+import { unlinkSync, writeFileSync } from "node:fs";
 import {
   decideGeminiCliCommand,
+  executeGeminiAnalyzeFile,
   executeGeminiChat,
   executeListSessions,
-  executeGeminiAnalyzeFile,
 } from "../../index.ts";
-import { writeFileSync, unlinkSync } from "node:fs";
 
 // Check if gemini-cli is available
-let isGeminiCliAvailable = false;
+let _isGeminiCliAvailable = false;
 
 beforeAll(async () => {
   try {
     // await decideGeminiCliCommand(false);
-    isGeminiCliAvailable = true;
+    _isGeminiCliAvailable = true;
   } catch (error) {
     console.warn(
       "Gemini CLI not found, skipping integration tests that require it.",
       error,
     );
-    isGeminiCliAvailable = false;
+    _isGeminiCliAvailable = false;
   }
 });
 
@@ -38,7 +38,7 @@ describe("Session Flow Integration Test", () => {
   test("Cleanup", () => {
     try {
       unlinkSync(testFilePath);
-    } catch (e) {
+    } catch (_e) {
       // ignore
     }
   });
@@ -48,7 +48,7 @@ describe("Session Flow Integration Test", () => {
 
     // 1. Chat with custom Session ID
     console.log("Step 1: Execute Chat");
-    let chatResult;
+    let chatResult: string | undefined;
     try {
       chatResult = await executeGeminiChat({
         prompt: "Hello, remember this code: 12345",

@@ -1,5 +1,5 @@
-import { spawn } from "child_process";
-import { createInterface } from "readline";
+import { spawn } from "node:child_process";
+import { createInterface } from "node:readline";
 
 const serverProcess = spawn("bun", ["run", "index.ts"], {
   stdio: ["pipe", "pipe", "inherit"],
@@ -14,10 +14,10 @@ let step = 0;
 
 console.log("Starting MCP Server verification...");
 
-const send = (msg: any) => {
+const send = (msg: unknown) => {
   const json = JSON.stringify(msg);
   console.log(`Sending: ${json}`);
-  serverProcess.stdin.write(json + "\n");
+  serverProcess.stdin.write(`${json}\n`);
 };
 
 rl.on("line", (line) => {
@@ -51,7 +51,7 @@ rl.on("line", (line) => {
         console.log("✅ Tools list received");
         console.log(
           "Tools found:",
-          msg.result.tools.map((t: any) => t.name).join(", "),
+          msg.result.tools.map((t: { name: string }) => t.name).join(", "),
         );
         process.exit(0);
       } else {
@@ -59,7 +59,7 @@ rl.on("line", (line) => {
         process.exit(1);
       }
     }
-  } catch (e) {
+  } catch (_e) {
     console.error(`Failed to parse JSON: ${line}`);
   }
 });
