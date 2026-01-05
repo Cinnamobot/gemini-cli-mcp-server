@@ -1,9 +1,9 @@
-import { spawn } from "node:child_process";
-import { existsSync, statSync } from "node:fs";
-import { extname, join } from "node:path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { spawn } from "node:child_process";
 import { z } from "zod";
+import { extname, join } from "node:path";
+import { existsSync, statSync } from "node:fs";
 import { getLocale, t } from "./i18n.js";
 
 /**
@@ -74,25 +74,12 @@ export async function executeGeminiCli(
   geminiCliCommand: { command: string; initialArgs: string[] },
   args: string[],
 ): Promise<string> {
-  let { command, initialArgs } = geminiCliCommand;
+  const { command, initialArgs } = geminiCliCommand;
   const commandArgs = [...initialArgs, ...args];
-  let shell = false;
-
-  // On Windows, if executing a .cmd or .bat file, we must use shell: true
-  // and quote the command path manually to handle spaces.
-  if (
-    process.platform === "win32" &&
-    (command.toLowerCase().endsWith(".cmd") ||
-      command.toLowerCase().endsWith(".bat"))
-  ) {
-    shell = true;
-    command = `"${command}"`;
-  }
 
   return new Promise((resolve, reject) => {
     const child = spawn(command, commandArgs, {
       stdio: ["pipe", "pipe", "pipe"],
-      shell,
     });
     let stdout = "";
     let stderr = "";
@@ -146,9 +133,25 @@ export const GoogleSearchParametersSchema = z.object({
     ),
 });
 
+// Zod schema for listSessions tool parameters
+export const ListSessionsParametersSchema = z.object({});
+
+// Session info structure returned by listSessions
+export interface SessionInfo {
+  title: string;
+  age: string;
+  sessionId: string;
+}
+
 // Zod schema for geminiChat tool parameters
 export const GeminiChatParametersSchema = z.object({
   prompt: z.string().describe("The prompt for the chat conversation."),
+  sessionId: z
+    .string()
+    .optional()
+    .describe(
+      "Session ID to resume a previous conversation. Use listSessions to get available session IDs.",
+    ),
   sandbox: z.boolean().optional().describe("Run gemini-cli in sandbox mode."),
   yolo: z
     .boolean()
@@ -183,37 +186,6 @@ export const GeminiAnalyzeFileParametersSchema = z.object({
       'The Gemini model to use. Recommended: "gemini-2.5-pro" (default) or "gemini-2.5-flash". Both models are confirmed to work with Google login.',
     ),
 });
-
-// Zod schema for executeTask tool parameters (sub-coding agent)
-export const GeminiExecuteTaskParametersSchema = z.object({
-  task: z
-    .string()
-    .describe(
-      "Description of the task to execute. Gemini will perform file edits, code generation, etc.",
-    ),
-  workingDirectory: z
-    .string()
-    .optional()
-    .describe(
-      "Working directory for the task. If not provided, uses current directory.",
-    ),
-  sandbox: z.boolean().optional().describe("Run gemini-cli in sandbox mode."),
-  yolo: z
-    .boolean()
-    .optional()
-    .default(true)
-    .describe(
-      "Automatically accept all actions (aka YOLO mode). Defaults to true for task execution.",
-    ),
-  model: z
-    .string()
-    .optional()
-    .describe(
-      'The Gemini model to use. Recommended: "gemini-2.5-pro" (default) or "gemini-2.5-flash". Both models are confirmed to work with Google login.',
-    ),
-});
-
-
 
 // Extracted tool execution functions for testing
 export async function executeGoogleSearch(args: unknown, allowNpx = false) {
@@ -252,7 +224,7 @@ export async function executeGoogleSearch(args: unknown, allowNpx = false) {
     }
   }
 
-  const cliArgs = [prompt];
+  const cliArgs = ["-p", prompt];
 
   if (parsedArgs.sandbox) {
     cliArgs.push("-s");
@@ -272,7 +244,10 @@ export async function executeGoogleSearch(args: unknown, allowNpx = false) {
 export async function executeGeminiChat(args: unknown, allowNpx = false) {
   const parsedArgs = GeminiChatParametersSchema.parse(args);
   const geminiCliCmd = await decideGeminiCliCommand(allowNpx);
-  const cliArgs = [parsedArgs.prompt];
+  const cliArgs = ["-p", parsedArgs.prompt];
+  if (parsedArgs.sessionId) {
+    cliArgs.push("-r", parsedArgs.sessionId);
+  }
   if (parsedArgs.sandbox) {
     cliArgs.push("-s");
   }
@@ -284,6 +259,42 @@ export async function executeGeminiChat(args: unknown, allowNpx = false) {
   }
   const result = await executeGeminiCli(geminiCliCmd, cliArgs);
   return result;
+}
+
+// Parse the output of gemini --list-sessions into structured data
+export function parseSessionsOutput(output: string): SessionInfo[] {
+  const sessions: SessionInfo[] = [];
+  const lines = output.split("\n");
+
+  // Format example:
+  // 1. Empty conversation (13 days ago) [54e41765-c1b4-43ef-a66b-b707e519]
+  // 9. hello test (14 minutes ago) [9ec64691-53cb-4fa3-b7df-a121b6dcef54]
+  // Using named capture groups for better readability and maintainability (ES2018+)
+  const sessionRegex = /^\s*\d+\.\s+(?<title>.+?)\s+\((?<age>[^)]+)\)\s+\[(?<sessionId>[^\]]+)\]/;
+
+  for (const line of lines) {
+    const match = line.match(sessionRegex);
+    if (match?.groups) {
+      sessions.push({
+        title: match.groups.title.trim(),
+        age: match.groups.age.trim(),
+        sessionId: match.groups.sessionId.trim(),
+      });
+    }
+  }
+
+  return sessions;
+}
+
+// List available Gemini sessions
+export async function executeListSessions(allowNpx = false) {
+  const geminiCliCmd = await decideGeminiCliCommand(allowNpx);
+  const result = await executeGeminiCli(geminiCliCmd, ["--list-sessions"]);
+  const sessions = parseSessionsOutput(result);
+  return {
+    raw: result,
+    sessions,
+  };
 }
 
 // Supported file extensions for geminiAnalyzeFile
@@ -330,7 +341,7 @@ export async function executeGeminiAnalyzeFile(
     fullPrompt += `\n\n${parsedArgs.prompt}`;
   }
 
-  const cliArgs = [fullPrompt];
+  const cliArgs = ["-p", fullPrompt];
   if (parsedArgs.sandbox) {
     cliArgs.push("-s");
   }
@@ -344,96 +355,6 @@ export async function executeGeminiAnalyzeFile(
   const result = await executeGeminiCli(geminiCliCmd, cliArgs);
   return result;
 }
-
-// Execute a coding task using Gemini as a sub-agent
-export async function executeGeminiTask(args: unknown, allowNpx = false) {
-  const parsedArgs = GeminiExecuteTaskParametersSchema.parse(args);
-  const geminiCliCmd = await decideGeminiCliCommand(allowNpx);
-
-  // Build the task prompt
-  const taskPrompt = parsedArgs.task;
-
-  const cliArgs = [taskPrompt];
-  if (parsedArgs.sandbox) {
-    cliArgs.push("-s");
-  }
-  // Default to yolo mode for task execution
-  if (parsedArgs.yolo !== false) {
-    cliArgs.push("-y");
-  }
-  if (parsedArgs.model) {
-    cliArgs.push("-m", parsedArgs.model);
-  }
-
-  // Execute with working directory if specified
-  const result = await executeGeminiCliWithCwd(
-    geminiCliCmd,
-    cliArgs,
-    parsedArgs.workingDirectory,
-  );
-  return result;
-}
-
-// Extended executeGeminiCli with working directory support
-async function executeGeminiCliWithCwd(
-  geminiCliCommand: { command: string; initialArgs: string[] },
-  args: string[],
-  cwd?: string,
-): Promise<string> {
-  let { command, initialArgs } = geminiCliCommand;
-  const commandArgs = [...initialArgs, ...args];
-  let shell = false;
-
-  // On Windows, if executing a .cmd or .bat file, we must use shell: true
-  // and quote the command path manually to handle spaces.
-  if (
-    process.platform === "win32" &&
-    (command.toLowerCase().endsWith(".cmd") ||
-      command.toLowerCase().endsWith(".bat"))
-  ) {
-    shell = true;
-    command = `"${command}"`;
-  }
-
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, commandArgs, {
-      stdio: ["pipe", "pipe", "pipe"],
-      shell,
-      cwd: cwd || process.cwd(),
-    });
-    let stdout = "";
-    let stderr = "";
-
-    // Close stdin immediately since we're not sending any input
-    child.stdin.end();
-
-    child.stdout.on("data", (data) => {
-      stdout += data.toString();
-    });
-
-    child.stderr.on("data", (data) => {
-      stderr += data.toString();
-    });
-
-    child.on("close", (code) => {
-      if (code === 0) {
-        resolve(stdout);
-      } else {
-        reject(new Error(`gemini exited with code ${code}: ${stderr}`));
-      }
-    });
-
-    child.on("error", (err) => {
-      reject(err);
-    });
-  });
-}
-
-
-
-
-
-
 
 async function main() {
   // Check for --allow-npx argument
@@ -507,6 +428,10 @@ async function main() {
       description: locale.tools.chat.description,
       inputSchema: {
         prompt: z.string().describe(locale.tools.chat.params.prompt),
+        sessionId: z
+          .string()
+          .optional()
+          .describe(locale.tools.chat.params.sessionId),
         sandbox: z
           .boolean()
           .optional()
@@ -522,6 +447,26 @@ async function main() {
           {
             type: "text",
             text: result,
+          },
+        ],
+      };
+    },
+  );
+
+  // Register listSessions tool
+  server.registerTool(
+    "listSessions",
+    {
+      description: locale.tools.listSessions.description,
+      inputSchema: {},
+    },
+    async () => {
+      const result = await executeListSessions(allowNpx);
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(result, null, 2),
           },
         ],
       };
@@ -565,51 +510,6 @@ async function main() {
       };
     },
   );
-
-  // Register executeTask tool (sub-coding agent)
-  server.registerTool(
-    "executeTask",
-    {
-      description: locale.tools.executeTask.description,
-      inputSchema: {
-        task: z.string().describe(locale.tools.executeTask.params.task),
-        workingDirectory: z
-          .string()
-          .optional()
-          .describe(locale.tools.executeTask.params.workingDirectory),
-        sandbox: z
-          .boolean()
-          .optional()
-          .describe(locale.tools.executeTask.params.sandbox),
-        yolo: z
-          .boolean()
-          .optional()
-          .default(true)
-          .describe(locale.tools.executeTask.params.yolo),
-        model: z
-          .string()
-          .optional()
-          .describe(locale.tools.executeTask.params.model),
-      },
-    },
-    async (args) => {
-      const result = await executeGeminiTask(args, allowNpx);
-      return {
-        content: [
-          {
-            type: "text",
-            text: result,
-          },
-        ],
-      };
-    },
-  );
-
-
-
-
-
-
 
   // Connect the server to stdio transport
   const transport = new StdioServerTransport();
