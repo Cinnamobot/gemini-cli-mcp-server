@@ -262,22 +262,23 @@ export async function executeGeminiChat(args: unknown, allowNpx = false) {
 }
 
 // Parse the output of gemini --list-sessions into structured data
-function parseSessionsOutput(output: string): SessionInfo[] {
+export function parseSessionsOutput(output: string): SessionInfo[] {
   const sessions: SessionInfo[] = [];
   const lines = output.split("\n");
 
   // Format example:
   // 1. Empty conversation (13 days ago) [54e41765-c1b4-43ef-a66b-b707e519]
   // 9. hello test (14 minutes ago) [9ec64691-53cb-4fa3-b7df-a121b6dcef54]
-  const sessionRegex = /^\s*\d+\.\s+(.+?)\s+\(([^)]+)\)\s+\[([^\]]+)\]/;
+  // Using named capture groups for better readability and maintainability (ES2018+)
+  const sessionRegex = /^\s*\d+\.\s+(?<title>.+?)\s+\((?<age>[^)]+)\)\s+\[(?<sessionId>[^\]]+)\]/;
 
   for (const line of lines) {
     const match = line.match(sessionRegex);
-    if (match) {
+    if (match?.groups) {
       sessions.push({
-        title: match[1].trim(),
-        age: match[2].trim(),
-        sessionId: match[3].trim(),
+        title: match.groups.title.trim(),
+        age: match.groups.age.trim(),
+        sessionId: match.groups.sessionId.trim(),
       });
     }
   }
@@ -295,7 +296,6 @@ export async function executeListSessions(allowNpx = false) {
     sessions,
   };
 }
-
 
 // Supported file extensions for geminiAnalyzeFile
 const SUPPORTED_IMAGE_EXTENSIONS = [
@@ -367,9 +367,7 @@ async function main() {
     console.error(
       `Error: ${error instanceof Error ? error.message : String(error)}`,
     );
-    console.error(
-      t("errors.installGemini"),
-    );
+    console.error(t("errors.installGemini"));
     process.exit(1);
   }
 
@@ -438,14 +436,8 @@ async function main() {
           .boolean()
           .optional()
           .describe(locale.tools.chat.params.sandbox),
-        yolo: z
-          .boolean()
-          .optional()
-          .describe(locale.tools.chat.params.yolo),
-        model: z
-          .string()
-          .optional()
-          .describe(locale.tools.chat.params.model),
+        yolo: z.boolean().optional().describe(locale.tools.chat.params.yolo),
+        model: z.string().optional().describe(locale.tools.chat.params.model),
       },
     },
     async (args) => {
@@ -487,9 +479,7 @@ async function main() {
     {
       description: locale.tools.analyzeFile.description,
       inputSchema: {
-        filePath: z
-          .string()
-          .describe(locale.tools.analyzeFile.params.filePath),
+        filePath: z.string().describe(locale.tools.analyzeFile.params.filePath),
         prompt: z
           .string()
           .optional()
