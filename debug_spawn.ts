@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 
 const executable = "C:\\Program Files\\nodejs\\gemini.cmd";
 // Quote the executable path because it has spaces
-const quotedExecutable = `"${executable}"`;
+const _quotedExecutable = `"${executable}"`;
 
 console.log(`Spawning cmd.exe /c ${executable} with complex args`);
 

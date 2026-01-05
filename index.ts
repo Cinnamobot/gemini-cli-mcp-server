@@ -1,8 +1,8 @@
-import spawn from "cross-spawn";
 import { existsSync, statSync } from "node:fs";
 import { extname, join } from "node:path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import spawn from "cross-spawn";
 import { z } from "zod";
 import { getLocale, t } from "./i18n.js";
 import { SessionManager } from "./session_manager.js";
@@ -165,6 +165,12 @@ export const GoogleSearchParametersSchema = z.object({
     .describe(
       'The Gemini model to use. Recommended: "gemini-2.5-pro" (default) or "gemini-2.5-flash". Both models are confirmed to work with Google login.',
     ),
+  sessionId: z
+    .string()
+    .optional()
+    .describe(
+      "Session ID to resume a previous conversation. Use listSessions to get available session IDs.",
+    ),
 });
 
 // Zod schema for listSessions tool parameters
@@ -274,6 +280,16 @@ export async function executeGoogleSearch(args: unknown, allowNpx = false) {
   }
   if (parsedArgs.model) {
     cliArgs.push("-m", parsedArgs.model);
+  }
+
+  // Use session if provided
+  if (parsedArgs.sessionId) {
+    return runWithSession(
+      parsedArgs.sessionId,
+      allowNpx,
+      geminiCliCmd,
+      cliArgs,
+    );
   }
 
   // Return raw result without parsing - let the client handle it
@@ -481,6 +497,10 @@ async function main() {
           .string()
           .optional()
           .describe(locale.tools.googleSearch.params.model),
+        sessionId: z
+          .string()
+          .optional()
+          .describe(locale.tools.googleSearch.params.sessionId),
       },
     },
     async (args) => {
