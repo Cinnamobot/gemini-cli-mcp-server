@@ -39,7 +39,8 @@
         "prompt": "ファイル分析の追加指示。指定しない場合、Geminiが一般的な分析を提供します。",
         "sandbox": "gemini-cliをサンドボックスモードで実行。",
         "yolo": "すべてのアクションを自動的に承認する（YOLOモード）。",
-        "model": "使用するGeminiモデル。推奨: \"gemini-2.5-pro\"（デフォルト）または \"gemini-2.5-flash\"。両モデルともGoogleログインで動作確認済み。"
+        "model": "使用するGeminiモデル。推奨: \"gemini-2.5-pro\"（デフォルト）または \"gemini-2.5-flash\"。両モデルともGoogleログインで動作確認済み。",
+        "sessionId": "前回の会話を再開するためのセッションID。利用可能なセッションIDはlistSessionsで取得できます。"
       }
     }
   }
