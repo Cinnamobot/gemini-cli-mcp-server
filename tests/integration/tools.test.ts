@@ -47,23 +47,27 @@ describe("MCP Gemini CLI Integration Tests", () => {
       }
     });
 
-    test("executeGeminiCli handles errors correctly", async () => {
-      try {
-        // Try to execute a command that will likely fail
-        const result = await executeGeminiCli(
-          { command: "gemini", initialArgs: [] },
-          ["--invalid-flag-that-does-not-exist"],
-        );
-        // If it somehow succeeds, check that we got a string
-        expect(typeof result).toBe("string");
-      } catch (error) {
-        // This is expected to fail
-        expect(error).toBeInstanceOf(Error);
-        expect(error instanceof Error && error.message).toMatch(
-          /gemini exited with code|Executable not found/,
-        );
-      }
-    });
+    test.if(isGeminiCliAvailable)(
+      "executeGeminiCli handles errors correctly",
+      async () => {
+        try {
+          // Try to execute a command that will likely fail
+          const result = await executeGeminiCli(
+            { command: "gemini", initialArgs: [] },
+            ["--invalid-flag-that-does-not-exist"],
+          );
+          // If it somehow succeeds, check that we got a string
+          expect(typeof result).toBe("string");
+        } catch (error) {
+          // This is expected to fail
+          expect(error).toBeInstanceOf(Error);
+          expect(error instanceof Error && error.message).toMatch(
+            /gemini exited with code|Executable not found/,
+          );
+        }
+      },
+      30000,
+    );
   });
 
   describe("tool execution", () => {
