@@ -58,6 +58,9 @@
     },
     "getRateLimits": {
       "description": "Returns the current Gemini API rate limits and quota information."
+    },
+    "listModels": {
+      "description": "Returns a list of available Gemini models that can be used with the --model option."
     }
   }
 }

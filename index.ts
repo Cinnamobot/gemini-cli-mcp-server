@@ -221,7 +221,9 @@ export const GeminiReviewChangesParametersSchema = z.object({
   focus: z
     .string()
     .optional()
-    .describe("Specific aspects to focus on during review (e.g., 'security', 'performance')."),
+    .describe(
+      "Specific aspects to focus on during review (e.g., 'security', 'performance').",
+    ),
   model: z
     .string()
     .optional()
@@ -536,6 +538,24 @@ export async function executeGetRateLimits(allowNpx = false) {
   return result;
 }
 
+// List available Gemini models
+export async function executeListModels(allowNpx = false) {
+  const geminiCliCmd = await decideGeminiCliCommand(allowNpx);
+
+  const prompt = `List all available Gemini models that can be used with the --model (-m) flag.
+For each model, provide:
+1. Model name (exact string to use with -m flag)
+2. Brief description
+3. Best use case
+
+Format as a structured list in Japanese.
+Include at minimum: gemini-2.5-pro, gemini-2.5-flash, gemini-2.0-flash, gemini-1.5-pro, gemini-1.5-flash`;
+
+  const cliArgs = [prompt, "-y"];
+  const result = await executeGeminiCli(geminiCliCmd, cliArgs);
+  return result;
+}
+
 async function main() {
   // Check for --allow-npx argument
   const allowNpx = process.argv.includes("--allow-npx");
@@ -747,6 +767,26 @@ async function main() {
     },
     async () => {
       const result = await executeGetRateLimits(allowNpx);
+      return {
+        content: [
+          {
+            type: "text",
+            text: result,
+          },
+        ],
+      };
+    },
+  );
+
+  // Register listModels tool
+  server.registerTool(
+    "listModels",
+    {
+      description: locale.tools.listModels.description,
+      inputSchema: {},
+    },
+    async () => {
+      const result = await executeListModels(allowNpx);
       return {
         content: [
           {

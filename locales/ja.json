@@ -58,6 +58,9 @@
     },
     "getRateLimits": {
       "description": "現在のGemini APIのレート制限とクォータ情報を返します。"
+    },
+    "listModels": {
+      "description": "--modelオプションで使用可能なGeminiモデルの一覧を返します。"
     }
   }
 }
