@@ -1,42 +1,27 @@
 # Gemini CLI MCP Server
 
+[![CI](https://github.com/Cinnamobot/gemini-cli-mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/Cinnamobot/gemini-cli-mcp-server/actions/workflows/ci.yml)
+
 🇺🇸 **[English](README.md)**
 
-Model Context Protocol (MCP) を通じて AI アシスタントが Gemini の機能を利用できるようにする、Google の Gemini CLI 用シンプルな MCP サーバーラッパーです。
+Google の [Gemini CLI](https://github.com/google-gemini/gemini-cli) 用シンプルな MCP サーバーラッパーです。Model Context Protocol を通じて AI アシスタントが Gemini の機能を利用できます。
 
-## 機能
+## ✨ 機能
 
-このサーバーは Gemini CLI と連携する 3 つのツールを提供します：
+- **4つのツール**: `googleSearch`, `chat`, `listSessions`, `analyzeFile`
+- **セッション継続**: セッションIDで過去の会話を再開可能
+- **国際化対応**: 日本語/英語サポート
+- **クロスプラットフォーム**: Windows, macOS, Linux 対応
 
-- `googleSearch`: Gemini を使用して Google 検索を実行
-- `chat`: Gemini との直接的な会話
-- `analyzeFile`: Gemini のマルチモーダル機能を使用したファイル分析（画像、PDF、テキスト）
+## 🚀 クイックセットアップ
 
-## 前提条件
-
-- [Gemini CLI](https://github.com/google-gemini/gemini-cli) がインストールされ設定済みであること（--allow-npx フラグを使用する場合は任意）
-
-## 🚀 Claude Code でのクイックスタート
-
-### 1. MCP サーバーを追加
+### Claude Code の場合
 
 ```bash
 claude mcp add -s project gemini-cli -- npx gemini-cli-mcp-server --allow-npx
 ```
 
-または、以下のインストールオプションセクションに示す設定で MCP クライアントを構成してください。
-
-### 2. 試してみる
-
-プロンプトの例：
-
-- **検索**: 「Google を使って最新の TypeScript 5.0 の機能を検索して」
-- **チャット**: 「JavaScript の async/await と Promise の違いを Gemini に説明してもらって」
-- **ファイル分析**: 「/path/to/screenshot.png の画像を Gemini に分析してもらって」
-
-## 🔧 インストールオプション
-
-### npx と --allow-npx フラグを使用
+### 手動設定
 
 ```json
 {
@@ -49,191 +34,95 @@ claude mcp add -s project gemini-cli -- npx gemini-cli-mcp-server --allow-npx
 }
 ```
 
-### ローカル開発
-
-1. クローンしてインストール：
-
-```bash
-git clone https://github.com/Cinnamobot/gemini-cli-mcp-server
-cd gemini-cli-mcp-server
-bun install
-```
-
-1. Claude Desktop の設定に追加：
-
-```json
-{
-  "mcpServers": {
-    "gemini-cli-mcp-server": {
-      "command": "bun",
-      "args": ["run", "/path/to/gemini-cli-mcp-server/index.ts"]
-    }
-  }
-}
-```
-
-## 🌍 言語設定
-
-ツールの説明とエラーメッセージは、環境変数で言語を切り替えられます：
-
-```bash
-# 日本語で起動
-MCP_LANGUAGE=ja bun run index.ts
-
-# 英語で起動（デフォルト）
-MCP_LANGUAGE=en bun run index.ts
-```
-
-システムの `LANG` 環境変数も自動検出されます（例：`LANG=ja_JP.UTF-8`）。
-
 ## 🛠️ 利用可能なツール
 
-### 1. googleSearch
+### googleSearch
 
 Gemini CLI を使用して Google 検索を実行します。
 
-**パラメータ:**
+| パラメータ | 必須 | 説明 |
+|-----------|------|------|
+| `query` | ✅ | 検索クエリ |
+| `limit` | | 結果の最大件数 |
+| `raw` | | URL付きの構造化結果を返す |
+| `model` | | Gemini モデル（デフォルト: `gemini-2.5-pro`）|
 
-- `query`（必須）: 検索クエリ
-- `limit`（任意）: 返す結果の最大件数
-- `sandbox`（任意）: サンドボックスモードで実行
-- `yolo`（任意）: 確認をスキップ
-- `model`（任意）: 使用する Gemini モデル（デフォルト：「gemini-2.5-pro」）
-
-### 2. chat
+### chat
 
 Gemini との会話を行います。
 
-**パラメータ:**
+| パラメータ | 必須 | 説明 |
+|-----------|------|------|
+| `prompt` | ✅ | 会話のプロンプト |
+| `sessionId` | | 過去のセッションを再開 |
+| `model` | | Gemini モデル（デフォルト: `gemini-2.5-pro`）|
 
-- `prompt`（必須）: 会話のプロンプト
-- `sandbox`（任意）: サンドボックスモードで実行
-- `yolo`（任意）: 確認をスキップ
-- `model`（任意）: 使用する Gemini モデル（デフォルト：「gemini-2.5-pro」）
+### listSessions
 
-### 3. analyzeFile
+利用可能な Gemini CLI セッション一覧を取得します。返されたセッションIDは chat の `sessionId` パラメータで使用できます。
+
+### analyzeFile
 
 Gemini のマルチモーダル機能を使用してファイルを分析します。
+
+| パラメータ | 必須 | 説明 |
+|-----------|------|------|
+| `filePath` | ✅ | ファイルの絶対パス |
+| `prompt` | | 分析の追加指示 |
+| `model` | | Gemini モデル（デフォルト: `gemini-2.5-pro`）|
 
 **対応ファイル形式:**
 
 - **画像**: PNG, JPG, JPEG, GIF, WEBP, SVG, BMP
-- **テキスト**: TXT, MD, TEXT
+- **テキスト**: TXT, MD
 - **ドキュメント**: PDF
 
-**パラメータ:**
+## 🌐 言語設定
 
-- `filePath`（必須）: 分析するファイルの絶対パス
-- `prompt`（任意）: ファイル分析の追加指示
-- `sandbox`（任意）: サンドボックスモードで実行
-- `yolo`（任意）: 確認をスキップ
-- `model`（任意）: 使用する Gemini モデル（デフォルト：「gemini-2.5-pro」）
+ツールの説明とエラーメッセージは多言語対応しています:
 
-## 💡 プロンプト例
+```bash
+# 日本語
+MCP_LANGUAGE=ja npx gemini-cli-mcp-server --allow-npx
 
-gemini-cli-mcp-server の動作を確認するためのプロンプト例：
-
-- **検索**: 「Google を使って最新の TypeScript 5.0 の機能を検索して」
-- **チャット**: 「JavaScript の async/await と Promise の違いを Gemini に説明してもらって」
-- **ファイル分析**: 「この画像に何が写っているか説明して: /Users/me/Desktop/screenshot.png」
-
-## 🛠️ 使用例
-
-### googleSearch
-
-```typescript
-// シンプルな検索
-googleSearch({ query: "最新のAIニュース" });
-
-// 件数制限付き検索
-googleSearch({
-  query: "TypeScript ベストプラクティス",
-  limit: 5,
-});
+# 英語（デフォルト）
+MCP_LANGUAGE=en npx gemini-cli-mcp-server --allow-npx
 ```
 
-### chat
-
-```typescript
-// シンプルなチャット
-chat({ prompt: "量子コンピューティングを簡単に説明して" });
-
-// 別のモデルを使用
-chat({
-  prompt: "プログラミングについての俳句を書いて",
-  model: "gemini-2.5-flash",
-});
-```
-
-### analyzeFile
-
-```typescript
-// 画像を分析
-analyzeFile({
-  filePath: "/path/to/image.png",
-  prompt: "この画像には何が写っていますか？",
-});
-
-// PDF を分析
-analyzeFile({
-  filePath: "/path/to/document.pdf",
-  prompt: "このドキュメントの要点をまとめて",
-});
-
-// 特定の指示なしで一般的な分析
-analyzeFile({ filePath: "/path/to/file.jpg" });
-```
+システムロケール（例: `LANG=ja_JP.UTF-8`）も自動検出されます。
 
 ## 📝 開発
 
-> **注意**: 開発には [Bun](https://bun.sh) ランタイムが必要です。
-
-### 開発モードで実行
-
 ```bash
-bun run dev
-```
+# クローンしてインストール
+git clone https://github.com/Cinnamobot/gemini-cli-mcp-server
+cd gemini-cli-mcp-server
+bun install
 
-### テストを実行
-
-```bash
+# テスト実行
 bun test
-```
 
-### 本番用ビルド
-
-```bash
-# 開発ビルド
+# ビルド
 bun run build
-
-# 本番ビルド（最小化）
-bun run build:prod
 ```
-
-### リントとフォーマット
-
-```bash
-# コードをリント
-bun run lint
-
-# コードをフォーマット
-bun run format
-```
-
-## 🤝 コントリビューション
-
-コントリビューションは大歓迎です！お気軽に Pull Request をお送りください。
-
-## 📄 ライセンス
-
-このプロジェクトは MIT ライセンスの下で公開されています。詳細は LICENSE ファイルをご覧ください。
 
 ## 🙏 クレジット
 
-このプロジェクトは [choplin/mcp-gemini-cli](https://github.com/choplin/mcp-gemini-cli) をベースにしています。オリジナルの実装に感謝します！
+このプロジェクトは [choplin/mcp-gemini-cli](https://github.com/choplin/mcp-gemini-cli) をベースにしています。
+
+### フォーク元からの追加機能
+
+- **listSessionsツール**: Gemini CLIセッション一覧の取得
+- **セッション継続**: `sessionId` パラメータで会話を再開
+- **国際化対応**: 日本語/英語サポート
+- **Windows互換性**: 独自の `findExecutable` 関数（`which`/`where` 不要）
+- **CI/CD**: GitHub Actions による自動テスト・ビルド
+
+## 📄 ライセンス
+
+MIT License - 詳細は [LICENSE](LICENSE) ファイルを参照してください。
 
 ## 🔗 関連リンク
 
 - [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli)
-- [Bun Runtime](https://bun.sh)

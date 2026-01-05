@@ -4,41 +4,24 @@
 
 🇯🇵 **[日本語](README.ja.md)**
 
-A simple MCP server wrapper for Google's Gemini CLI that enables AI assistants to use Gemini's capabilities through the Model Context Protocol.
+A simple MCP server wrapper for Google's [Gemini CLI](https://github.com/google-gemini/gemini-cli) that enables AI assistants to use Gemini's capabilities through the Model Context Protocol.
 
-## What it does
+## ✨ Features
 
-This server exposes three tools that interact with Gemini CLI:
+- **4 Tools**: `googleSearch`, `chat`, `listSessions`, `analyzeFile`
+- **Session Persistence**: Resume previous conversations with session IDs
+- **Internationalization**: English and Japanese support
+- **Cross-Platform**: Windows, macOS, and Linux compatible
 
-- `googleSearch`: Asks Gemini to perform a Google search using your query
-- `chat`: Sends prompts directly to Gemini for general conversations
-- `analyzeFile`: Analyzes files (images, PDFs, text) using Gemini's multimodal capabilities
+## 🚀 Quick Setup
 
-## Prerequisites
-
-- [Gemini CLI](https://github.com/google-gemini/gemini-cli) installed and configured (optional with --allow-npx flag)
-
-## 🚀 Quick Start with Claude Code
-
-### 1. Add the MCP server
+### With Claude Code
 
 ```bash
 claude mcp add -s project gemini-cli -- npx gemini-cli-mcp-server --allow-npx
 ```
 
-Or configure your MCP client with the settings shown in the Installation Options section below.
-
-### 2. Try it out
-
-Example prompts:
-
-- **Search**: "Search for the latest TypeScript 5.0 features using Google"
-- **Chat**: "Ask Gemini to explain the difference between async/await and promises in JavaScript"
-- **File Analysis**: "Ask Gemini to analyze the image at /path/to/screenshot.png"
-
-## 🔧 Installation Options
-
-### Using npx with --allow-npx flag
+### Manual Configuration
 
 ```json
 {
@@ -51,200 +34,95 @@ Example prompts:
 }
 ```
 
-### Local Development
-
-1. Clone and install:
-
-```bash
-git clone https://github.com/Cinnamobot/gemini-cli-mcp-server
-cd gemini-cli-mcp-server
-bun install
-```
-
-1. Add to Claude Desktop config:
-
-```json
-{
-  "mcpServers": {
-    "gemini-cli-mcp-server": {
-      "command": "bun",
-      "args": ["run", "/path/to/gemini-cli-mcp-server/index.ts"]
-    }
-  }
-}
-```
-
 ## 🛠️ Available Tools
 
-### 1. googleSearch
+### googleSearch
 
 Performs a Google search using Gemini CLI.
 
-**Parameters:**
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `query` | ✅ | The search query |
+| `limit` | | Maximum number of results |
+| `raw` | | Return structured results with URLs |
+| `model` | | Gemini model (default: `gemini-2.5-pro`) |
 
-- `query` (required): The search query
-- `limit` (optional): Maximum number of results
-- `sandbox` (optional): Run in sandbox mode
-- `yolo` (optional): Skip confirmations
-- `model` (optional): Gemini model to use (default: "gemini-2.5-pro")
-
-### 2. chat
+### chat
 
 Have a conversation with Gemini.
 
-**Parameters:**
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `prompt` | ✅ | The conversation prompt |
+| `sessionId` | | Resume a previous session |
+| `model` | | Gemini model (default: `gemini-2.5-pro`) |
 
-- `prompt` (required): The conversation prompt
-- `sandbox` (optional): Run in sandbox mode
-- `yolo` (optional): Skip confirmations
-- `model` (optional): Gemini model to use (default: "gemini-2.5-pro")
+### listSessions
 
-### 3. analyzeFile
+Lists available Gemini CLI sessions. Returns session IDs that can be used with chat's `sessionId` parameter.
+
+### analyzeFile
 
 Analyze files using Gemini's multimodal capabilities.
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `filePath` | ✅ | Absolute path to the file |
+| `prompt` | | Additional analysis instructions |
+| `model` | | Gemini model (default: `gemini-2.5-pro`) |
 
 **Supported file types:**
 
 - **Images**: PNG, JPG, JPEG, GIF, WEBP, SVG, BMP
-- **Text**: TXT, MD, TEXT
+- **Text**: TXT, MD
 - **Documents**: PDF
 
-**Parameters:**
+## 🌐 Language Settings
 
-- `filePath` (required): The absolute path to the file to analyze
-- `prompt` (optional): Additional instructions for analyzing the file
-- `sandbox` (optional): Run in sandbox mode
-- `yolo` (optional): Skip confirmations
-- `model` (optional): Gemini model to use (default: "gemini-2.5-pro")
+Tool descriptions and error messages support multiple languages:
 
-## 💡 Example Prompts
+```bash
+# Japanese
+MCP_LANGUAGE=ja npx gemini-cli-mcp-server --allow-npx
 
-Try these prompts to see gemini-cli-mcp-server in action:
-
-- **Search**: "Search for the latest TypeScript 5.0 features using Google"
-- **Chat**: "Ask Gemini to explain the difference between async/await and promises in JavaScript"
-- **File Analysis**: "Ask Gemini to describe what's in this image: /Users/me/Desktop/screenshot.png"
-
-## 🛠️ Example Usage
-
-### googleSearch
-
-```typescript
-// Simple search
-googleSearch({ query: "latest AI news" });
-
-// Search with limit
-googleSearch({
-  query: "TypeScript best practices",
-  limit: 5,
-});
+# English (default)
+MCP_LANGUAGE=en npx gemini-cli-mcp-server --allow-npx
 ```
 
-### chat
-
-```typescript
-// Simple chat
-chat({ prompt: "Explain quantum computing in simple terms" });
-
-// Using a different model
-chat({
-  prompt: "Write a haiku about programming",
-  model: "gemini-2.5-flash",
-});
-```
-
-### analyzeFile
-
-```typescript
-// Analyze an image
-analyzeFile({ 
-  filePath: "/path/to/image.png",
-  prompt: "What objects are in this image?"
-});
-
-// Analyze a PDF
-analyzeFile({
-  filePath: "/path/to/document.pdf",
-  prompt: "Summarize the key points in this document"
-});
-
-// General analysis without specific instructions
-analyzeFile({ filePath: "/path/to/file.jpg" });
-```
+System locale (e.g., `LANG=ja_JP.UTF-8`) is also auto-detected.
 
 ## 📝 Development
 
-> **Note**: Development requires [Bun](https://bun.sh) runtime.
-
-### Run in Development Mode
-
 ```bash
-bun run dev
-```
+# Clone and install
+git clone https://github.com/Cinnamobot/gemini-cli-mcp-server
+cd gemini-cli-mcp-server
+bun install
 
-### Run Tests
-
-```bash
+# Run tests
 bun test
-```
 
-### Build for Production
-
-```bash
-# Development build
+# Build
 bun run build
-
-# Production build (minified)
-bun run build:prod
 ```
-
-### Linting & Formatting
-
-```bash
-# Lint code
-bun run lint
-
-# Format code
-bun run format
-```
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## 🙏 Credits
 
-This project is based on [choplin/mcp-gemini-cli](https://github.com/choplin/mcp-gemini-cli). Thank you for the original implementation!
+This project is based on [choplin/mcp-gemini-cli](https://github.com/choplin/mcp-gemini-cli).
 
-## 📋 Changelog
+### Additions from fork
 
-### [0.3.1] - 2025-07-03
+- **listSessions tool**: List available Gemini CLI sessions
+- **Session persistence**: Resume conversations with `sessionId` parameter
+- **Internationalization**: Japanese/English support
+- **Windows compatibility**: Custom `findExecutable` function (no `which`/`where` dependency)
+- **CI/CD**: GitHub Actions for automated testing and building
 
-#### Fixed
+## 📄 License
 
-- Fixed Windows compatibility issue with `which` command
-
-### [0.3.0] - 2025-07-02
-
-#### Breaking Changes
-
-- Tool names: `geminiChat` → `chat`, `geminiAnalyzeFile` → `analyzeFile`
-- Package name: `@choplin/mcp-gemini-cli` → `gemini-cli-mcp-server`
-
-#### New Features
-
-- `analyzeFile` tool for images (PNG/JPG/GIF/etc), PDFs, and text files
-
-### [0.2.0] - Previous
-
-- Initial release with `googleSearch` and `geminiChat` tools
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🔗 Related Links
 
 - [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli)
-- [Bun Runtime](https://bun.sh)
