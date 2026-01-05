@@ -186,17 +186,25 @@ export const GeminiAnalyzeFileParametersSchema = z.object({
 
 // Zod schema for executeTask tool parameters (sub-coding agent)
 export const GeminiExecuteTaskParametersSchema = z.object({
-  task: z.string().describe("Description of the task to execute. Gemini will perform file edits, code generation, etc."),
+  task: z
+    .string()
+    .describe(
+      "Description of the task to execute. Gemini will perform file edits, code generation, etc.",
+    ),
   workingDirectory: z
     .string()
     .optional()
-    .describe("Working directory for the task. If not provided, uses current directory."),
+    .describe(
+      "Working directory for the task. If not provided, uses current directory.",
+    ),
   sandbox: z.boolean().optional().describe("Run gemini-cli in sandbox mode."),
   yolo: z
     .boolean()
     .optional()
     .default(true)
-    .describe("Automatically accept all actions (aka YOLO mode). Defaults to true for task execution."),
+    .describe(
+      "Automatically accept all actions (aka YOLO mode). Defaults to true for task execution.",
+    ),
   model: z
     .string()
     .optional()
@@ -205,6 +213,22 @@ export const GeminiExecuteTaskParametersSchema = z.object({
     ),
 });
 
+// Zod schema for reviewChanges tool parameters
+export const GeminiReviewChangesParametersSchema = z.object({
+  workingDirectory: z
+    .string()
+    .describe("Directory to review for changes (must be a git repository)."),
+  focus: z
+    .string()
+    .optional()
+    .describe("Specific aspects to focus on during review (e.g., 'security', 'performance')."),
+  model: z
+    .string()
+    .optional()
+    .describe(
+      'The Gemini model to use. Recommended: "gemini-2.5-pro" (default) or "gemini-2.5-flash".',
+    ),
+});
 
 // Extracted tool execution functions for testing
 export async function executeGoogleSearch(args: unknown, allowNpx = false) {
@@ -420,6 +444,97 @@ async function executeGeminiCliWithCwd(
   });
 }
 
+// Review changes in a git repository and identify potential risks
+export async function executeReviewChanges(args: unknown, allowNpx = false) {
+  const parsedArgs = GeminiReviewChangesParametersSchema.parse(args);
+  const geminiCliCmd = await decideGeminiCliCommand(allowNpx);
+
+  // Get git diff
+  const gitDiff = await new Promise<string>((resolve, reject) => {
+    const child = spawn("git", ["diff", "--cached", "--diff-filter=ACMR"], {
+      cwd: parsedArgs.workingDirectory,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (data) => {
+      stdout += data.toString();
+    });
+    child.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+    child.on("close", (code) => {
+      if (code === 0) {
+        resolve(stdout);
+      } else {
+        // Try unstaged diff if no staged changes
+        const child2 = spawn("git", ["diff"], {
+          cwd: parsedArgs.workingDirectory,
+          stdio: ["pipe", "pipe", "pipe"],
+        });
+        let stdout2 = "";
+        child2.stdout.on("data", (data) => {
+          stdout2 += data.toString();
+        });
+        child2.on("close", () => {
+          resolve(stdout2);
+        });
+        child2.on("error", () => {
+          reject(new Error(`git diff failed: ${stderr}`));
+        });
+      }
+    });
+    child.on("error", (err) => {
+      reject(err);
+    });
+  });
+
+  if (!gitDiff.trim()) {
+    return "No changes detected in the repository.";
+  }
+
+  // Build review prompt
+  let reviewPrompt = `Review the following code changes and identify:
+1. **Potential Risks**: Security vulnerabilities, data loss risks, breaking changes
+2. **Critical Issues**: Bugs, logic errors, performance problems
+3. **Improvement Suggestions**: Best practices, code quality improvements
+
+${parsedArgs.focus ? `Focus especially on: ${parsedArgs.focus}\n\n` : ""}
+\`\`\`diff
+${gitDiff}
+\`\`\`
+
+Provide a structured analysis in Japanese.`;
+
+  const cliArgs = [reviewPrompt, "-y"];
+  if (parsedArgs.model) {
+    cliArgs.push("-m", parsedArgs.model);
+  }
+
+  const result = await executeGeminiCliWithCwd(
+    geminiCliCmd,
+    cliArgs,
+    parsedArgs.workingDirectory,
+  );
+  return result;
+}
+
+// Get rate limits information
+export async function executeGetRateLimits(allowNpx = false) {
+  const geminiCliCmd = await decideGeminiCliCommand(allowNpx);
+
+  const prompt = `What are the current Gemini API rate limits and quotas? 
+  Please provide:
+  1. Requests per minute (RPM)
+  2. Tokens per minute (TPM)  
+  3. Any other relevant limits
+  
+  Answer in Japanese with structured format.`;
+
+  const cliArgs = [prompt, "-y"];
+  const result = await executeGeminiCli(geminiCliCmd, cliArgs);
+  return result;
+}
 
 async function main() {
   // Check for --allow-npx argument
@@ -580,6 +695,58 @@ async function main() {
     },
     async (args) => {
       const result = await executeGeminiTask(args, allowNpx);
+      return {
+        content: [
+          {
+            type: "text",
+            text: result,
+          },
+        ],
+      };
+    },
+  );
+
+  // Register reviewChanges tool
+  server.registerTool(
+    "reviewChanges",
+    {
+      description: locale.tools.reviewChanges.description,
+      inputSchema: {
+        workingDirectory: z
+          .string()
+          .describe(locale.tools.reviewChanges.params.workingDirectory),
+        focus: z
+          .string()
+          .optional()
+          .describe(locale.tools.reviewChanges.params.focus),
+        model: z
+          .string()
+          .optional()
+          .describe(locale.tools.reviewChanges.params.model),
+      },
+    },
+    async (args) => {
+      const result = await executeReviewChanges(args, allowNpx);
+      return {
+        content: [
+          {
+            type: "text",
+            text: result,
+          },
+        ],
+      };
+    },
+  );
+
+  // Register getRateLimits tool
+  server.registerTool(
+    "getRateLimits",
+    {
+      description: locale.tools.getRateLimits.description,
+      inputSchema: {},
+    },
+    async () => {
+      const result = await executeGetRateLimits(allowNpx);
       return {
         content: [
           {

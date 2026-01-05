@@ -47,6 +47,17 @@
         "yolo": "すべてのアクションを自動的に承認する（YOLOモード）。タスク実行時はデフォルトでtrue。",
         "model": "使用するGeminiモデル。推奨: \"gemini-2.5-pro\"（デフォルト）または \"gemini-2.5-flash\"。両モデルともGoogleログインで動作確認済み。"
       }
+    },
+    "reviewChanges": {
+      "description": "Gitリポジトリのコード変更をレビューし、潜在的なリスク、クリティカルな問題、改善提案を特定します。",
+      "params": {
+        "workingDirectory": "レビュー対象のディレクトリ（Gitリポジトリである必要あり）。",
+        "focus": "レビュー時に特に注目すべき点（例：'セキュリティ'、'パフォーマンス'）。",
+        "model": "使用するGeminiモデル。推奨: \"gemini-2.5-pro\"（デフォルト）または \"gemini-2.5-flash\"。"
+      }
+    },
+    "getRateLimits": {
+      "description": "現在のGemini APIのレート制限とクォータ情報を返します。"
     }
   }
 }
