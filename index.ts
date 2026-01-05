@@ -165,6 +165,12 @@ export const GoogleSearchParametersSchema = z.object({
     .describe(
       'The Gemini model to use. Recommended: "gemini-2.5-pro" (default) or "gemini-2.5-flash". Both models are confirmed to work with Google login.',
     ),
+  sessionId: z
+    .string()
+    .optional()
+    .describe(
+      "Session ID to resume a previous conversation. Use listSessions to get available session IDs.",
+    ),
 });
 
 // Zod schema for listSessions tool parameters
@@ -274,6 +280,16 @@ export async function executeGoogleSearch(args: unknown, allowNpx = false) {
   }
   if (parsedArgs.model) {
     cliArgs.push("-m", parsedArgs.model);
+  }
+
+  // Use session if provided
+  if (parsedArgs.sessionId) {
+    return runWithSession(
+      parsedArgs.sessionId,
+      allowNpx,
+      geminiCliCmd,
+      cliArgs,
+    );
   }
 
   // Return raw result without parsing - let the client handle it
@@ -481,6 +497,10 @@ async function main() {
           .string()
           .optional()
           .describe(locale.tools.googleSearch.params.model),
+        sessionId: z
+          .string()
+          .optional()
+          .describe(locale.tools.googleSearch.params.sessionId),
       },
     },
     async (args) => {
@@ -543,10 +563,10 @@ async function main() {
       const mappingText =
         Object.entries(mappings).length > 0
           ? `\n\nActive Mappings (Client ID -> Real ID):\n${Object.entries(
-              mappings,
-            )
-              .map(([k, v]) => `- ${k} -> ${v}`)
-              .join("\n")}`
+            mappings,
+          )
+            .map(([k, v]) => `- ${k} -> ${v}`)
+            .join("\n")}`
           : "";
 
       return {

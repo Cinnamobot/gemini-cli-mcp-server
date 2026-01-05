@@ -44,6 +44,15 @@ describe("Unit Tests: Zod Schemas", () => {
       const result = GoogleSearchParametersSchema.safeParse(input);
       expect(result.success).toBe(false);
     });
+
+    test("validates input with sessionId", () => {
+      const input = {
+        query: "test query",
+        sessionId: "test-session-id",
+      };
+      const result = GoogleSearchParametersSchema.safeParse(input);
+      expect(result.success).toBe(true);
+    });
   });
 
   describe("GeminiChatParametersSchema", () => {

@@ -16,7 +16,8 @@
         "raw": "Return raw search results with URLs and snippets (optional).",
         "sandbox": "Run gemini-cli in sandbox mode.",
         "yolo": "Automatically accept all actions (aka YOLO mode).",
-        "model": "The Gemini model to use. Recommended: \"gemini-2.5-pro\" (default) or \"gemini-2.5-flash\". Both models are confirmed to work with Google login."
+        "model": "The Gemini model to use. Recommended: \"gemini-2.5-pro\" (default) or \"gemini-2.5-flash\". Both models are confirmed to work with Google login.",
+        "sessionId": "Session ID to resume a previous conversation. Use listSessions to get available session IDs."
       }
     },
     "chat": {
