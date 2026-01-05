@@ -1,9 +1,9 @@
-import { describe, expect, test, beforeAll } from "bun:test";
+import { beforeAll, describe, expect, test } from "bun:test";
 import {
   decideGeminiCliCommand,
+  executeGeminiChat,
   executeGeminiCli,
   executeGoogleSearch,
-  executeGeminiChat,
   executeListSessions,
   parseSessionsOutput,
 } from "../../index.ts";

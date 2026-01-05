@@ -1,9 +1,9 @@
+import { spawn } from "node:child_process";
+import { existsSync, statSync } from "node:fs";
+import { extname, join } from "node:path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { spawn } from "node:child_process";
 import { z } from "zod";
-import { extname, join } from "node:path";
-import { existsSync, statSync } from "node:fs";
 import { getLocale, t } from "./i18n.js";
 import { SessionManager } from "./session_manager.js";
 
@@ -400,9 +400,9 @@ export async function executeGeminiAnalyzeFile(
     const locale = getLocale();
     throw new Error(
       `${t("errors.unsupportedFileType", { extension: fileExtension })}\n` +
-      `${locale.errors.images}: ${SUPPORTED_IMAGE_EXTENSIONS.join(", ")}\n` +
-      `${locale.errors.text}: ${SUPPORTED_TEXT_EXTENSIONS.join(", ")}\n` +
-      `${locale.errors.documents}: ${SUPPORTED_DOCUMENT_EXTENSIONS.join(", ")}`,
+        `${locale.errors.images}: ${SUPPORTED_IMAGE_EXTENSIONS.join(", ")}\n` +
+        `${locale.errors.text}: ${SUPPORTED_TEXT_EXTENSIONS.join(", ")}\n` +
+        `${locale.errors.documents}: ${SUPPORTED_DOCUMENT_EXTENSIONS.join(", ")}`,
     );
   }
 
@@ -425,7 +425,8 @@ export async function executeGeminiAnalyzeFile(
     cliArgs.push("-m", parsedArgs.model);
   }
 
-  if (parsedArgs.sessionId) { // Use sessionId if provided (not specifically file-session, just generic session)
+  if (parsedArgs.sessionId) {
+    // Use sessionId if provided (not specifically file-session, just generic session)
     // Note: gemini-cli might not support -r for analyze?
     // Documentation says: "analyze <file> [prompt]"
     // It DOES support global flags like -r?
@@ -438,7 +439,7 @@ export async function executeGeminiAnalyzeFile(
       parsedArgs.sessionId,
       allowNpx,
       geminiCliCmd,
-      cliArgs
+      cliArgs,
     );
   }
 
@@ -555,10 +556,13 @@ async function main() {
 
       // Inject mappings into the output text for visibility
       const mappings = sessionManager.getAllMappings(); // Need to implement this in SessionManager
-      const mappingText = Object.entries(mappings).length > 0
-        ? "\n\nActive Mappings (Client ID -> Real ID):\n" +
-        Object.entries(mappings).map(([k, v]) => `- ${k} -> ${v}`).join("\n")
-        : "";
+      const mappingText =
+        Object.entries(mappings).length > 0
+          ? "\n\nActive Mappings (Client ID -> Real ID):\n" +
+            Object.entries(mappings)
+              .map(([k, v]) => `- ${k} -> ${v}`)
+              .join("\n")
+          : "";
 
       return {
         content: [
