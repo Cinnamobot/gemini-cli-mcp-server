@@ -23,10 +23,14 @@
             "description": "Engages in a chat conversation with gemini-cli.",
             "params": {
                 "prompt": "The prompt for the chat conversation.",
+                "sessionId": "Session ID to resume a previous conversation. Use listSessions to get available session IDs.",
                 "sandbox": "Run gemini-cli in sandbox mode.",
                 "yolo": "Automatically accept all actions (aka YOLO mode).",
                 "model": "The Gemini model to use. Recommended: \"gemini-2.5-pro\" (default) or \"gemini-2.5-flash\". Both models are confirmed to work with Google login."
             }
+        },
+        "listSessions": {
+            "description": "Lists available Gemini CLI sessions for the current project. Returns session IDs that can be used with chat's sessionId parameter to resume conversations."
         },
         "analyzeFile": {
             "description": "Analyzes files using gemini-cli. Supported file types: Images (.png, .jpg, .jpeg, .gif, .webp, .svg, .bmp), Text (.txt, .md, .text), Documents (.pdf)",

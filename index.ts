@@ -41,7 +41,6 @@ export function findExecutable(name: string): string | null {
         }
       } catch {
         // Ignore errors (permission denied, etc.)
-        continue;
       }
     }
   }
@@ -134,9 +133,25 @@ export const GoogleSearchParametersSchema = z.object({
     ),
 });
 
+// Zod schema for listSessions tool parameters
+export const ListSessionsParametersSchema = z.object({});
+
+// Session info structure returned by listSessions
+export interface SessionInfo {
+  title: string;
+  age: string;
+  sessionId: string;
+}
+
 // Zod schema for geminiChat tool parameters
 export const GeminiChatParametersSchema = z.object({
   prompt: z.string().describe("The prompt for the chat conversation."),
+  sessionId: z
+    .string()
+    .optional()
+    .describe(
+      "Session ID to resume a previous conversation. Use listSessions to get available session IDs.",
+    ),
   sandbox: z.boolean().optional().describe("Run gemini-cli in sandbox mode."),
   yolo: z
     .boolean()
@@ -230,6 +245,9 @@ export async function executeGeminiChat(args: unknown, allowNpx = false) {
   const parsedArgs = GeminiChatParametersSchema.parse(args);
   const geminiCliCmd = await decideGeminiCliCommand(allowNpx);
   const cliArgs = ["-p", parsedArgs.prompt];
+  if (parsedArgs.sessionId) {
+    cliArgs.push("-r", parsedArgs.sessionId);
+  }
   if (parsedArgs.sandbox) {
     cliArgs.push("-s");
   }
@@ -242,6 +260,42 @@ export async function executeGeminiChat(args: unknown, allowNpx = false) {
   const result = await executeGeminiCli(geminiCliCmd, cliArgs);
   return result;
 }
+
+// Parse the output of gemini --list-sessions into structured data
+function parseSessionsOutput(output: string): SessionInfo[] {
+  const sessions: SessionInfo[] = [];
+  const lines = output.split("\n");
+
+  // Format example:
+  // 1. Empty conversation (13 days ago) [54e41765-c1b4-43ef-a66b-b707e519]
+  // 9. hello test (14 minutes ago) [9ec64691-53cb-4fa3-b7df-a121b6dcef54]
+  const sessionRegex = /^\s*\d+\.\s+(.+?)\s+\(([^)]+)\)\s+\[([^\]]+)\]/;
+
+  for (const line of lines) {
+    const match = line.match(sessionRegex);
+    if (match) {
+      sessions.push({
+        title: match[1].trim(),
+        age: match[2].trim(),
+        sessionId: match[3].trim(),
+      });
+    }
+  }
+
+  return sessions;
+}
+
+// List available Gemini sessions
+export async function executeListSessions(allowNpx = false) {
+  const geminiCliCmd = await decideGeminiCliCommand(allowNpx);
+  const result = await executeGeminiCli(geminiCliCmd, ["--list-sessions"]);
+  const sessions = parseSessionsOutput(result);
+  return {
+    raw: result,
+    sessions,
+  };
+}
+
 
 // Supported file extensions for geminiAnalyzeFile
 const SUPPORTED_IMAGE_EXTENSIONS = [
@@ -376,6 +430,10 @@ async function main() {
       description: locale.tools.chat.description,
       inputSchema: {
         prompt: z.string().describe(locale.tools.chat.params.prompt),
+        sessionId: z
+          .string()
+          .optional()
+          .describe(locale.tools.chat.params.sessionId),
         sandbox: z
           .boolean()
           .optional()
@@ -397,6 +455,26 @@ async function main() {
           {
             type: "text",
             text: result,
+          },
+        ],
+      };
+    },
+  );
+
+  // Register listSessions tool
+  server.registerTool(
+    "listSessions",
+    {
+      description: locale.tools.listSessions.description,
+      inputSchema: {},
+    },
+    async () => {
+      const result = await executeListSessions(allowNpx);
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(result, null, 2),
           },
         ],
       };

@@ -23,10 +23,14 @@
             "description": "gemini-cliとチャット会話を行います。",
             "params": {
                 "prompt": "チャット会話のプロンプト。",
+                "sessionId": "前回の会話を再開するためのセッションID。利用可能なセッションIDはlistSessionsで取得できます。",
                 "sandbox": "gemini-cliをサンドボックスモードで実行。",
                 "yolo": "すべてのアクションを自動的に承認する（YOLOモード）。",
                 "model": "使用するGeminiモデル。推奨: \"gemini-2.5-pro\"（デフォルト）または \"gemini-2.5-flash\"。両モデルともGoogleログインで動作確認済み。"
             }
+        },
+        "listSessions": {
+            "description": "現在のプロジェクトで利用可能なGemini CLIセッション一覧を取得します。chatのsessionIdパラメータで会話を再開するためのセッションIDを返します。"
         },
         "analyzeFile": {
             "description": "gemini-cliを使用してファイルを分析します。対応ファイル形式: 画像 (.png, .jpg, .jpeg, .gif, .webp, .svg, .bmp)、テキスト (.txt, .md, .text)、ドキュメント (.pdf)",
