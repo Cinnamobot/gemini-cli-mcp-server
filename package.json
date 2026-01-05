@@ -54,12 +54,14 @@
   "devDependencies": {
     "@biomejs/biome": "^2.0.5",
     "@types/bun": "latest",
+    "@types/cross-spawn": "^6.0.6",
     "lefthook": "^1.11.14",
     "markdownlint-cli2": "^0.18.1",
     "typescript": "^5.0.0"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.13.1",
+    "cross-spawn": "^7.0.6",
     "zod": "^3.25.67"
   },
   "markdownlint-cli2": {
