@@ -270,7 +270,8 @@ export function parseSessionsOutput(output: string): SessionInfo[] {
   // 1. Empty conversation (13 days ago) [54e41765-c1b4-43ef-a66b-b707e519]
   // 9. hello test (14 minutes ago) [9ec64691-53cb-4fa3-b7df-a121b6dcef54]
   // Using named capture groups for better readability and maintainability (ES2018+)
-  const sessionRegex = /^\s*\d+\.\s+(?<title>.+?)\s+\((?<age>[^)]+)\)\s+\[(?<sessionId>[^\]]+)\]/;
+  const sessionRegex =
+    /^\s*\d+\.\s+(?<title>.+?)\s+\((?<age>[^)]+)\)\s+\[(?<sessionId>[^\]]+)\]/;
 
   for (const line of lines) {
     const match = line.match(sessionRegex);
@@ -327,9 +328,9 @@ export async function executeGeminiAnalyzeFile(
     const locale = getLocale();
     throw new Error(
       `${t("errors.unsupportedFileType", { extension: fileExtension })}\n` +
-      `${locale.errors.images}: ${SUPPORTED_IMAGE_EXTENSIONS.join(", ")}\n` +
-      `${locale.errors.text}: ${SUPPORTED_TEXT_EXTENSIONS.join(", ")}\n` +
-      `${locale.errors.documents}: ${SUPPORTED_DOCUMENT_EXTENSIONS.join(", ")}`,
+        `${locale.errors.images}: ${SUPPORTED_IMAGE_EXTENSIONS.join(", ")}\n` +
+        `${locale.errors.text}: ${SUPPORTED_TEXT_EXTENSIONS.join(", ")}\n` +
+        `${locale.errors.documents}: ${SUPPORTED_DOCUMENT_EXTENSIONS.join(", ")}`,
     );
   }
 

@@ -126,11 +126,15 @@ describe("MCP Gemini CLI Integration Tests", () => {
 
       expect(sessions[1].title).toBe("こんにちはテスト");
       expect(sessions[1].age).toBe("14 minutes ago");
-      expect(sessions[1].sessionId).toBe("9ec64691-53cb-4fa3-b7df-a121b6dcef54");
+      expect(sessions[1].sessionId).toBe(
+        "9ec64691-53cb-4fa3-b7df-a121b6dcef54",
+      );
 
       expect(sessions[2].title).toBe("Project discussion");
       expect(sessions[2].age).toBe("2 hours ago");
-      expect(sessions[2].sessionId).toBe("abc12345-abcd-1234-ef56-7890abcdef12");
+      expect(sessions[2].sessionId).toBe(
+        "abc12345-abcd-1234-ef56-7890abcdef12",
+      );
     });
 
     test("parseSessionsOutput handles empty output", () => {
