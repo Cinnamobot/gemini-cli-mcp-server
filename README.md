@@ -9,7 +9,7 @@ A simple MCP server wrapper for Google's [Gemini CLI](https://github.com/google-
 ## ✨ Features
 
 - **4 Tools**: `googleSearch`, `chat`, `listSessions`, `analyzeFile`
-- **Session Persistence**: Resume previous conversations with session IDs
+- **Session Persistence**: Resume previous conversations with session IDs (supports custom IDs)
 - **Internationalization**: English and Japanese support
 - **Cross-Platform**: Windows, macOS, and Linux compatible
 
@@ -54,7 +54,7 @@ Have a conversation with Gemini.
 | Parameter | Required | Description |
 |-----------|----------|-------------|
 | `prompt` | ✅ | The conversation prompt |
-| `sessionId` | | Resume a previous session |
+| `sessionId` | | Resume a previous session (supports custom IDs like "my-task") |
 | `model` | | Gemini model (default: `gemini-2.5-pro`) |
 
 ### listSessions
@@ -69,6 +69,7 @@ Analyze files using Gemini's multimodal capabilities.
 |-----------|----------|-------------|
 | `filePath` | ✅ | Absolute path to the file |
 | `prompt` | | Additional analysis instructions |
+| `sessionId` | | Resume a previous session (maintains context) |
 | `model` | | Gemini model (default: `gemini-2.5-pro`) |
 
 **Supported file types:**
@@ -76,6 +77,28 @@ Analyze files using Gemini's multimodal capabilities.
 - **Images**: PNG, JPG, JPEG, GIF, WEBP, SVG, BMP
 - **Text**: TXT, MD
 - **Documents**: PDF
+
+## 💾 Session Management
+
+You can use **Custom Session IDs** (Client IDs) to manage conversations. The server automatically maps these to Gemini CLI's internal session IDs.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "chat",
+    "arguments": {
+      "prompt": "Hello!",
+      "sessionId": "my-task-1"
+    }
+  },
+  "id": 1
+}
+```
+
+- **Persistence**: Mappings are stored in **memory**. They will be reset if the MCP server restarts (Gemini's internal history remains, but the link to your custom ID is lost).
+- **Listing**: Use `listSessions` to see active mappings.
 
 ## 🌐 Language Settings
 
