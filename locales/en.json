@@ -47,20 +47,6 @@
         "yolo": "Automatically accept all actions (aka YOLO mode). Defaults to true for task execution.",
         "model": "The Gemini model to use. Recommended: \"gemini-2.5-pro\" (default) or \"gemini-2.5-flash\". Both models are confirmed to work with Google login."
       }
-    },
-    "reviewChanges": {
-      "description": "Reviews code changes in a git repository and identifies potential risks, critical issues, and improvement suggestions.",
-      "params": {
-        "workingDirectory": "Directory to review for changes (must be a git repository).",
-        "focus": "Specific aspects to focus on during review (e.g., 'security', 'performance').",
-        "model": "The Gemini model to use. Recommended: \"gemini-2.5-pro\" (default) or \"gemini-2.5-flash\"."
-      }
-    },
-    "getRateLimits": {
-      "description": "Returns the current Gemini API rate limits and quota information."
-    },
-    "listModels": {
-      "description": "Returns a list of available Gemini models that can be used with the --model option."
     }
   }
 }
