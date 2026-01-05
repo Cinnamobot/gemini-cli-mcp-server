@@ -343,21 +343,6 @@ export async function executeListSessions(allowNpx = false) {
   const result = await executeGeminiCli(geminiCliCmd, ["--list-sessions"]);
   const sessions = parseSessionsOutput(result);
 
-  // enrich with mapped IDs
-  const enrichedSessions = sessions.map((session) => {
-    // Find if this real ID is mapped to any client ID
-    // Since SessionManager doesn't have reverse lookup optimized, we iterate
-    // This is fine for small number of sessions
-    // Access privates? No, we need a method or iterating entries.
-    // Wait, SessionManager.sessions is private.
-    // I should add a public method to get all mappings or findByValue?
-    // For now, I'll access the map if I update SessionManager, OR I'll just skip this visual enrichment?
-    // The plan said "Optionally enrich output".
-    // I'll skip reverse lookup modification in SessionManager for now to keep it simple,
-    // OR I can quickly add a `getMappings` method to SessionManager.
-    return session;
-  });
-
   // Actually, I can't effectively display the mapping in `parseSessionsOutput` result (SessionInfo) without changing the type.
   // And `executeListSessions` returns `{ raw, sessions }`.
   // I will add a `mappings` field to the return object.
@@ -401,10 +386,7 @@ export async function executeGeminiAnalyzeFile(
   if (!SUPPORTED_EXTENSIONS.includes(fileExtension)) {
     const locale = getLocale();
     throw new Error(
-      `${t("errors.unsupportedFileType", { extension: fileExtension })}\n` +
-      `${locale.errors.images}: ${SUPPORTED_IMAGE_EXTENSIONS.join(", ")}\n` +
-      `${locale.errors.text}: ${SUPPORTED_TEXT_EXTENSIONS.join(", ")}\n` +
-      `${locale.errors.documents}: ${SUPPORTED_DOCUMENT_EXTENSIONS.join(", ")}`,
+      `${t("errors.unsupportedFileType", { extension: fileExtension })}\n${locale.errors.images}: ${SUPPORTED_IMAGE_EXTENSIONS.join(", ")}\n${locale.errors.text}: ${SUPPORTED_TEXT_EXTENSIONS.join(", ")}\n${locale.errors.documents}: ${SUPPORTED_DOCUMENT_EXTENSIONS.join(", ")}`,
     );
   }
 
@@ -560,10 +542,11 @@ async function main() {
       const mappings = sessionManager.getAllMappings(); // Need to implement this in SessionManager
       const mappingText =
         Object.entries(mappings).length > 0
-          ? "\n\nActive Mappings (Client ID -> Real ID):\n" +
-          Object.entries(mappings)
-            .map(([k, v]) => `- ${k} -> ${v}`)
-            .join("\n")
+          ? `\n\nActive Mappings (Client ID -> Real ID):\n${Object.entries(
+              mappings,
+            )
+              .map(([k, v]) => `- ${k} -> ${v}`)
+              .join("\n")}`
           : "";
 
       return {
