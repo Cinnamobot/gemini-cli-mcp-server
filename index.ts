@@ -222,7 +222,9 @@ export const GeminiAnalyzeFileParametersSchema = z.object({
   sessionId: z
     .string()
     .optional()
-    .describe(locale.tools.analyzeFile.params.sessionId),
+    .describe(
+      "Session ID to resume a previous conversation. Use listSessions to get available session IDs.",
+    ),
 });
 
 // Extracted tool execution functions for testing
@@ -400,9 +402,9 @@ export async function executeGeminiAnalyzeFile(
     const locale = getLocale();
     throw new Error(
       `${t("errors.unsupportedFileType", { extension: fileExtension })}\n` +
-        `${locale.errors.images}: ${SUPPORTED_IMAGE_EXTENSIONS.join(", ")}\n` +
-        `${locale.errors.text}: ${SUPPORTED_TEXT_EXTENSIONS.join(", ")}\n` +
-        `${locale.errors.documents}: ${SUPPORTED_DOCUMENT_EXTENSIONS.join(", ")}`,
+      `${locale.errors.images}: ${SUPPORTED_IMAGE_EXTENSIONS.join(", ")}\n` +
+      `${locale.errors.text}: ${SUPPORTED_TEXT_EXTENSIONS.join(", ")}\n` +
+      `${locale.errors.documents}: ${SUPPORTED_DOCUMENT_EXTENSIONS.join(", ")}`,
     );
   }
 
@@ -559,9 +561,9 @@ async function main() {
       const mappingText =
         Object.entries(mappings).length > 0
           ? "\n\nActive Mappings (Client ID -> Real ID):\n" +
-            Object.entries(mappings)
-              .map(([k, v]) => `- ${k} -> ${v}`)
-              .join("\n")
+          Object.entries(mappings)
+            .map(([k, v]) => `- ${k} -> ${v}`)
+            .join("\n")
           : "";
 
       return {
@@ -598,6 +600,10 @@ async function main() {
           .string()
           .optional()
           .describe(locale.tools.analyzeFile.params.model),
+        sessionId: z
+          .string()
+          .optional()
+          .describe(locale.tools.analyzeFile.params.sessionId),
       },
     },
     async (args) => {
