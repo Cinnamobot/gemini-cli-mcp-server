@@ -7,6 +7,9 @@ import { z } from "zod";
 import { getLocale, t } from "./i18n.js";
 import { SessionManager } from "./session_manager.js";
 
+// Default model for all Gemini CLI operations
+export const DEFAULT_MODEL = "gemini-3-pro-preview";
+
 /**
  * Find an executable in PATH, respecting PATHEXT on Windows.
  * Equivalent to 'which' on Unix or 'where' on Windows,
@@ -163,7 +166,7 @@ export const GoogleSearchParametersSchema = z.object({
     .string()
     .optional()
     .describe(
-      'The Gemini model to use. Recommended: "gemini-2.5-pro" (default) or "gemini-2.5-flash". Both models are confirmed to work with Google login.',
+      `The Gemini model to use. Default: "${DEFAULT_MODEL}". Alternative: "gemini-2.5-flash" for faster responses.`,
     ),
   sessionId: z
     .string()
@@ -202,7 +205,7 @@ export const GeminiChatParametersSchema = z.object({
     .string()
     .optional()
     .describe(
-      'The Gemini model to use. Recommended: "gemini-2.5-pro" (default) or "gemini-2.5-flash". Both models are confirmed to work with Google login.',
+      `The Gemini model to use. Default: "${DEFAULT_MODEL}". Alternative: "gemini-2.5-flash" for faster responses.`,
     ),
 });
 
@@ -224,7 +227,7 @@ export const GeminiAnalyzeFileParametersSchema = z.object({
     .string()
     .optional()
     .describe(
-      'The Gemini model to use. Recommended: "gemini-2.5-pro" (default) or "gemini-2.5-flash". Both models are confirmed to work with Google login.',
+      `The Gemini model to use. Default: "${DEFAULT_MODEL}". Alternative: "gemini-2.5-flash" for faster responses.`,
     ),
   sessionId: z
     .string()
@@ -251,7 +254,7 @@ export const ExecuteTaskParametersSchema = z.object({
     .string()
     .optional()
     .describe(
-      'The Gemini model to use. Recommended: "gemini-2.5-pro" (default) or "gemini-2.5-flash". Both models are confirmed to work with Google login.',
+      `The Gemini model to use. Default: "${DEFAULT_MODEL}". Alternative: "gemini-2.5-flash" for faster responses.`,
     ),
   sandbox: z
     .boolean()
@@ -308,9 +311,8 @@ export async function executeGoogleSearch(args: unknown, allowNpx = false) {
   if (parsedArgs.yolo) {
     cliArgs.push("-y");
   }
-  if (parsedArgs.model) {
-    cliArgs.push("-m", parsedArgs.model);
-  }
+  // Always set model (use default if not specified)
+  cliArgs.push("-m", parsedArgs.model || DEFAULT_MODEL);
 
   // Use session if provided
   if (parsedArgs.sessionId) {
@@ -341,9 +343,8 @@ export async function executeGeminiChat(args: unknown, allowNpx = false) {
   if (parsedArgs.yolo) {
     cliArgs.push("-y");
   }
-  if (parsedArgs.model) {
-    cliArgs.push("-m", parsedArgs.model);
-  }
+  // Always set model (use default if not specified)
+  cliArgs.push("-m", parsedArgs.model || DEFAULT_MODEL);
 
   if (parsedArgs.sessionId) {
     return runWithSession(
@@ -378,9 +379,8 @@ export async function executeTask(args: unknown, allowNpx = false) {
   if (parsedArgs.yolo) {
     cliArgs.push("-y");
   }
-  if (parsedArgs.model) {
-    cliArgs.push("-m", parsedArgs.model);
-  }
+  // Always set model (use default if not specified)
+  cliArgs.push("-m", parsedArgs.model || DEFAULT_MODEL);
 
   if (parsedArgs.sessionId) {
     return runWithSession(
@@ -489,9 +489,8 @@ export async function executeGeminiAnalyzeFile(
   if (parsedArgs.yolo) {
     cliArgs.push("-y");
   }
-  if (parsedArgs.model) {
-    cliArgs.push("-m", parsedArgs.model);
-  }
+  // Always set model (use default if not specified)
+  cliArgs.push("-m", parsedArgs.model || DEFAULT_MODEL);
 
   if (parsedArgs.sessionId) {
     // Use sessionId if provided (not specifically file-session, just generic session)

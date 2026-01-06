@@ -55,3 +55,6 @@ wheels/
 
 .gemini/
 gha-creds-*.json
+
+digests/
+analysis_reports/
