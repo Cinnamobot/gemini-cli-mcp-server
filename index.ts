@@ -233,6 +233,35 @@ export const GeminiAnalyzeFileParametersSchema = z.object({
     ),
 });
 
+// Zod schema for executeTask tool parameters
+export const ExecuteTaskParametersSchema = z.object({
+  task: z.string().describe("The task description to execute."),
+  files: z
+    .array(z.string())
+    .optional()
+    .describe("Optional file paths relevant to the task."),
+  sessionId: z
+    .string()
+    .optional()
+    .describe(
+      "Session ID to resume a previous conversation. Use listSessions to get available session IDs.",
+    ),
+  model: z
+    .string()
+    .optional()
+    .describe(
+      'The Gemini model to use. Recommended: "gemini-2.5-pro" (default) or "gemini-2.5-flash". Both models are confirmed to work with Google login.',
+    ),
+  sandbox: z
+    .boolean()
+    .optional()
+    .describe("Run in sandbox mode. Default: false (allows editing)."),
+  yolo: z
+    .boolean()
+    .optional()
+    .describe("Automatically accept all actions (aka YOLO mode)."),
+});
+
 // Extracted tool execution functions for testing
 export async function executeGoogleSearch(args: unknown, allowNpx = false) {
   const parsedArgs = GoogleSearchParametersSchema.parse(args);
@@ -304,7 +333,45 @@ export async function executeGeminiChat(args: unknown, allowNpx = false) {
   if (parsedArgs.sessionId) {
     cliArgs.push("-r", parsedArgs.sessionId);
   }
-  if (parsedArgs.sandbox) {
+  // chat defaults to sandbox mode (safe, read-only)
+  if (parsedArgs.sandbox !== false) {
+    cliArgs.push("-s");
+  }
+  if (parsedArgs.yolo) {
+    cliArgs.push("-y");
+  }
+  if (parsedArgs.model) {
+    cliArgs.push("-m", parsedArgs.model);
+  }
+
+  if (parsedArgs.sessionId) {
+    return runWithSession(
+      parsedArgs.sessionId,
+      allowNpx,
+      geminiCliCmd,
+      cliArgs,
+    );
+  }
+
+  const result = await executeGeminiCli(geminiCliCmd, cliArgs);
+  return result;
+}
+
+// Execute a task with edit permissions (sandbox: false by default)
+export async function executeTask(args: unknown, allowNpx = false) {
+  const parsedArgs = ExecuteTaskParametersSchema.parse(args);
+  const geminiCliCmd = await decideGeminiCliCommand(allowNpx);
+
+  // Build task-optimized prompt
+  let prompt = parsedArgs.task;
+  if (parsedArgs.files?.length) {
+    prompt += `\n\nTarget files:\n${parsedArgs.files.join("\n")}`;
+  }
+
+  const cliArgs = ["-p", prompt];
+
+  // executeTask defaults to allowing edits (sandbox: false)
+  if (parsedArgs.sandbox === true) {
     cliArgs.push("-s");
   }
   if (parsedArgs.yolo) {
@@ -611,6 +678,48 @@ async function main() {
     },
     async (args) => {
       const result = await executeGeminiAnalyzeFile(args, allowNpx);
+      return {
+        content: [
+          {
+            type: "text",
+            text: result,
+          },
+        ],
+      };
+    },
+  );
+
+  // Register executeTask tool
+  server.registerTool(
+    "executeTask",
+    {
+      description: locale.tools.executeTask.description,
+      inputSchema: {
+        task: z.string().describe(locale.tools.executeTask.params.task),
+        files: z
+          .array(z.string())
+          .optional()
+          .describe(locale.tools.executeTask.params.files),
+        sessionId: z
+          .string()
+          .optional()
+          .describe(locale.tools.executeTask.params.sessionId),
+        model: z
+          .string()
+          .optional()
+          .describe(locale.tools.executeTask.params.model),
+        sandbox: z
+          .boolean()
+          .optional()
+          .describe(locale.tools.executeTask.params.sandbox),
+        yolo: z
+          .boolean()
+          .optional()
+          .describe(locale.tools.executeTask.params.yolo),
+      },
+    },
+    async (args) => {
+      const result = await executeTask(args, allowNpx);
       return {
         content: [
           {
