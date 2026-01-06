@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
 import {
   decideGeminiCliCommand,
+  ExecuteTaskParametersSchema,
   GeminiAnalyzeFileParametersSchema,
   GeminiChatParametersSchema,
   GoogleSearchParametersSchema,
@@ -90,6 +91,47 @@ describe("Unit Tests: Zod Schemas", () => {
         prompt: "Describe this",
       };
       const result = GeminiAnalyzeFileParametersSchema.safeParse(input);
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe("ExecuteTaskParametersSchema", () => {
+    test("validates valid input with task only", () => {
+      const input = {
+        task: "Add error handling to the function",
+      };
+      const result = ExecuteTaskParametersSchema.safeParse(input);
+      expect(result.success).toBe(true);
+    });
+
+    test("validates input with files array", () => {
+      const input = {
+        task: "Refactor these files",
+        files: ["/path/to/file1.ts", "/path/to/file2.ts"],
+        model: "gemini-2.5-pro",
+      };
+      const result = ExecuteTaskParametersSchema.safeParse(input);
+      expect(result.success).toBe(true);
+    });
+
+    test("validates input with all options", () => {
+      const input = {
+        task: "Generate unit tests",
+        files: ["/path/to/source.ts"],
+        sessionId: "test-session",
+        model: "gemini-2.5-flash",
+        sandbox: false,
+        yolo: true,
+      };
+      const result = ExecuteTaskParametersSchema.safeParse(input);
+      expect(result.success).toBe(true);
+    });
+
+    test("fails on missing task", () => {
+      const input = {
+        files: ["/path/to/file.ts"],
+      };
+      const result = ExecuteTaskParametersSchema.safeParse(input);
       expect(result.success).toBe(false);
     });
   });

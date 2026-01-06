@@ -43,6 +43,17 @@
         "model": "使用するGeminiモデル。推奨: \"gemini-2.5-pro\"（デフォルト）または \"gemini-2.5-flash\"。両モデルともGoogleログインで動作確認済み。",
         "sessionId": "前回の会話を再開するためのセッションID。利用可能なセッションIDはlistSessionsで取得できます。"
       }
+    },
+    "executeTask": {
+      "description": "gemini-cliを使用して編集権限付きでタスクを実行します。コード生成、ファイル編集、コマンド実行に使用します。",
+      "params": {
+        "task": "実行するタスクの説明。",
+        "files": "タスクに関連するファイルパス（任意）。",
+        "sessionId": "前回の会話を再開するためのセッションID。利用可能なセッションIDはlistSessionsで取得できます。",
+        "model": "使用するGeminiモデル。推奨: \"gemini-2.5-pro\"（デフォルト）または \"gemini-2.5-flash\"。両モデルともGoogleログインで動作確認済み。",
+        "sandbox": "サンドボックスモードで実行。デフォルト: false（編集許可）。",
+        "yolo": "すべてのアクションを自動的に承認する（YOLOモード）。"
+      }
     }
   }
 }
