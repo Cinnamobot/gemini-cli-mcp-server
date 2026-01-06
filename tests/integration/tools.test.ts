@@ -1,6 +1,8 @@
 import { beforeAll, describe, expect, test } from "bun:test";
+import { unlinkSync, writeFileSync } from "node:fs";
 import {
   decideGeminiCliCommand,
+  executeGeminiAnalyzeFile,
   executeGeminiChat,
   executeGeminiCli,
   executeGoogleSearch,
@@ -112,6 +114,63 @@ describe("MCP Gemini CLI Integration Tests", () => {
         expect(true).toBe(true);
       });
     }
+  });
+
+  describe("analyzeFile execution", () => {
+    const testFilePath = "test-analyze-sample.txt";
+
+    beforeAll(() => {
+      // Create a test file for analysis
+      writeFileSync(
+        testFilePath,
+        "This is a sample text file for testing analyzeFile functionality.",
+      );
+    });
+
+    test.if(isGeminiCliAvailable)(
+      "analyzeFileTool executes without error on text file",
+      async () => {
+        const result = await executeGeminiAnalyzeFile({
+          filePath: testFilePath,
+          prompt: "What is in this file?",
+          sandbox: true,
+          yolo: true,
+          model: "gemini-2.5-flash",
+        });
+
+        expect(result).toBeDefined();
+        expect(typeof result).toBe("string");
+      },
+      30000,
+    );
+
+    test("analyzeFileTool throws error for unsupported file type", async () => {
+      await expect(
+        executeGeminiAnalyzeFile({
+          filePath: "/path/to/file.xyz",
+          sandbox: true,
+        }),
+      ).rejects.toThrow(/Unsupported file type/);
+    });
+
+    test("analyzeFileTool throws error for .exe file", async () => {
+      await expect(
+        executeGeminiAnalyzeFile({
+          filePath: "/path/to/program.exe",
+          sandbox: true,
+        }),
+      ).rejects.toThrow(/Unsupported file type/);
+    });
+
+    // Cleanup test file
+    test("Cleanup test file", () => {
+      try {
+        unlinkSync(testFilePath);
+      } catch (_e) {
+        // ignore if file doesn't exist
+      }
+      expect(true).toBe(true);
+    });
   });
 
   describe("session management", () => {
