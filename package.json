@@ -69,7 +69,8 @@
       "node_modules/**",
       ".git/**",
       ".claude/**",
-      "tmp/**"
+      "tmp/**",
+      "CHANGELOG.md"
     ],
     "config": {
       "default": true,
