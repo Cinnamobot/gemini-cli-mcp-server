@@ -181,6 +181,7 @@ export interface SessionInfo {
   title: string;
   age: string;
   sessionId: string;
+  clientId?: string; // Custom client ID mapped to this session
 }
 
 // Zod schema for geminiChat tool parameters
@@ -625,22 +626,33 @@ async function main() {
     async () => {
       const result = await executeListSessions(allowNpx);
 
-      // Inject mappings into the output text for visibility
-      const mappings = sessionManager.getAllMappings(); // Need to implement this in SessionManager
-      const mappingText =
-        Object.entries(mappings).length > 0
-          ? `\n\nActive Mappings (Client ID -> Real ID):\n${Object.entries(
-              mappings,
-            )
-              .map(([k, v]) => `- ${k} -> ${v}`)
-              .join("\n")}`
-          : "";
+      // Get current mappings
+      const mappings = sessionManager.getAllMappings();
+
+      // Create reverse lookup: realId -> clientId
+      const reverseMappings: Record<string, string> = {};
+      for (const [clientId, realId] of Object.entries(mappings)) {
+        reverseMappings[realId] = clientId;
+      }
+
+      // Add clientId to each session if mapped
+      const sessionsWithClientId = result.sessions.map((session) => ({
+        ...session,
+        clientId: reverseMappings[session.sessionId],
+      }));
+
+      // Build structured response
+      const structuredResult = {
+        raw: result.raw,
+        sessions: sessionsWithClientId,
+        mappings: Object.keys(mappings).length > 0 ? mappings : undefined,
+      };
 
       return {
         content: [
           {
             type: "text",
-            text: JSON.stringify(result, null, 2) + mappingText,
+            text: JSON.stringify(structuredResult, null, 2),
           },
         ],
       };
