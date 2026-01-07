@@ -1,11 +1,16 @@
-import { existsSync, statSync } from "node:fs";
-import { extname, join } from "node:path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import spawn from "cross-spawn";
+import { existsSync, statSync } from "node:fs";
+import { extname, join } from "node:path";
 import { z } from "zod";
 import { getLocale, t } from "./i18n.js";
 import { SessionManager } from "./session_manager.js";
+import {
+  type StreamingTaskResult,
+  aggregateStreamEvents,
+  parseStreamOutput,
+} from "./streaming.js";
 
 // Default model for all Gemini CLI operations
 export const DEFAULT_MODEL = "gemini-3-pro-preview";
@@ -274,6 +279,35 @@ export const ExecuteTaskParametersSchema = z.object({
     .describe("The working directory to execute the task in."),
 });
 
+// Zod schema for streamingTask tool parameters
+export const StreamingTaskParametersSchema = z.object({
+  task: z.string().describe("The task description to execute."),
+  files: z
+    .array(z.string())
+    .optional()
+    .describe("Optional file paths relevant to the task."),
+  approvalMode: z
+    .enum(["yolo", "auto_edit"])
+    .optional()
+    .describe(
+      "Approval mode for tool calls: 'yolo' (auto-approve all), 'auto_edit' (auto-approve edits only). Default: 'auto_edit'.",
+    ),
+  model: z
+    .string()
+    .optional()
+    .describe(`The Gemini model to use. Default: "${DEFAULT_MODEL}".`),
+  cwd: z
+    .string()
+    .optional()
+    .describe("The working directory to execute the task in."),
+  sessionId: z
+    .string()
+    .optional()
+    .describe(
+      "Session ID to resume a previous conversation. Use listSessions to get available session IDs.",
+    ),
+});
+
 // Extracted tool execution functions for testing
 export async function executeGoogleSearch(args: unknown, allowNpx = false) {
   const parsedArgs = GoogleSearchParametersSchema.parse(args);
@@ -411,6 +445,72 @@ export async function executeTask(args: unknown, allowNpx = false) {
 
   const result = await executeGeminiCli(geminiCliCmd, cliArgs, parsedArgs.cwd);
   return result;
+}
+
+// Execute a task with streaming JSON output for real-time monitoring
+export async function executeStreamingTask(
+  args: unknown,
+  allowNpx = false,
+): Promise<StreamingTaskResult> {
+  const parsedArgs = StreamingTaskParametersSchema.parse(args);
+  const geminiCliCmd = await decideGeminiCliCommand(allowNpx);
+
+  // Build task-optimized prompt
+  let prompt = parsedArgs.task;
+  if (parsedArgs.files?.length) {
+    prompt += `\n\nTarget files:\n${parsedArgs.files.join("\n")}`;
+  }
+
+  const cliArgs = ["-p", prompt, "--output-format", "stream-json"];
+
+  // Set approval mode (default: auto_edit)
+  const approvalMode = parsedArgs.approvalMode || "auto_edit";
+  cliArgs.push("--approval-mode", approvalMode);
+
+  // Always set model (use default if not specified)
+  cliArgs.push("-m", parsedArgs.model || DEFAULT_MODEL);
+
+  // Execute with streaming output
+  const { command, initialArgs } = geminiCliCmd;
+  const commandArgs = [...initialArgs, ...cliArgs];
+
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, commandArgs, {
+      stdio: ["pipe", "pipe", "pipe"],
+      cwd: parsedArgs.cwd || process.cwd(),
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    // Close stdin immediately
+    child.stdin.end();
+
+    child.stdout.on("data", (data: Buffer) => {
+      stdout += data.toString();
+    });
+
+    child.stderr.on("data", (data: Buffer) => {
+      stderr += data.toString();
+    });
+
+    child.on("close", (code: number | null) => {
+      // Parse stream events regardless of exit code
+      const events = parseStreamOutput(stdout);
+      const result = aggregateStreamEvents(events);
+
+      if (code !== 0 && result.errors.length === 0) {
+        result.errors.push(`Process exited with code ${code}: ${stderr}`);
+        result.status = "error";
+      }
+
+      resolve(result);
+    });
+
+    child.on("error", (err: Error) => {
+      reject(err);
+    });
+  });
 }
 
 // Parse the output of gemini --list-sessions into structured data
@@ -754,6 +854,48 @@ async function main() {
           {
             type: "text",
             text: result,
+          },
+        ],
+      };
+    },
+  );
+
+  // Register streamingTask tool
+  server.registerTool(
+    "streamingTask",
+    {
+      description: locale.tools.streamingTask.description,
+      inputSchema: {
+        task: z.string().describe(locale.tools.streamingTask.params.task),
+        files: z
+          .array(z.string())
+          .optional()
+          .describe(locale.tools.streamingTask.params.files),
+        approvalMode: z
+          .enum(["yolo", "auto_edit"])
+          .optional()
+          .describe(locale.tools.streamingTask.params.approvalMode),
+        model: z
+          .string()
+          .optional()
+          .describe(locale.tools.streamingTask.params.model),
+        cwd: z
+          .string()
+          .optional()
+          .describe(locale.tools.streamingTask.params.cwd),
+        sessionId: z
+          .string()
+          .optional()
+          .describe(locale.tools.streamingTask.params.sessionId),
+      },
+    },
+    async (args) => {
+      const result = await executeStreamingTask(args, allowNpx);
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(result, null, 2),
           },
         ],
       };
