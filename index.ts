@@ -545,17 +545,28 @@ export async function executeListSessions(allowNpx = false) {
   const result = await executeGeminiCli(geminiCliCmd, ["--list-sessions"]);
   const sessions = parseSessionsOutput(result);
 
-  // Actually, I can't effectively display the mapping in `parseSessionsOutput` result (SessionInfo) without changing the type.
-  // And `executeListSessions` returns `{ raw, sessions }`.
-  // I will add a `mappings` field to the return object.
+  // Get all mappings (ClientId -> RealId)
+  const mappings = sessionManager.getAllMappings();
 
-  // We need to access sessionManager sessions.
-  // Since `sessions` is private, I can't access it here.
-  // I will fix `session_manager.ts` in a separate step if I really want this.
-  // For now, let's just return what we have.
+  // Create reverse mapping (RealId -> ClientId) for efficient lookup
+  // If multiple client IDs map to same real ID (unlikely but possible), last one wins
+  const realToClient = new Map<string, string>();
+  for (const [clientId, realId] of Object.entries(mappings)) {
+    realToClient.set(realId, clientId);
+  }
+
+  // Attach clientId to session info
+  for (const session of sessions) {
+    const clientId = realToClient.get(session.sessionId);
+    if (clientId) {
+      session.clientId = clientId;
+    }
+  }
+
   return {
     raw: result,
     sessions,
+    mappings,
   };
 }
 

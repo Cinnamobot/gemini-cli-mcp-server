@@ -164,6 +164,8 @@ Another invalid line
         expect(result.raw).toBeDefined();
         expect(typeof result.raw).toBe("string");
         expect(Array.isArray(result.sessions)).toBe(true);
+        expect(result.mappings).toBeDefined();
+        expect(typeof result.mappings).toBe("object");
       },
       30000,
     ); // 30 second timeout
