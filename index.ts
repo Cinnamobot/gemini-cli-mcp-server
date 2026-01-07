@@ -265,7 +265,9 @@ export const ExecuteTaskParametersSchema = z.object({
   yolo: z
     .boolean()
     .optional()
-    .describe("Automatically accept all actions (aka YOLO mode). Default: true for executeTask."),
+    .describe(
+      "Automatically accept all actions (aka YOLO mode). Default: true for executeTask.",
+    ),
   cwd: z
     .string()
     .optional()
