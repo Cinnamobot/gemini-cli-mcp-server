@@ -16,7 +16,8 @@
         "raw": "Return raw search results with URLs and snippets (optional).",
         "sandbox": "Run gemini-cli in sandbox mode.",
         "yolo": "Automatically accept all actions (aka YOLO mode).",
-        "model": "The Gemini model to use. Recommended: \"gemini-2.5-pro\" (default) or \"gemini-2.5-flash\". Both models are confirmed to work with Google login."
+        "model": "The Gemini model to use. Recommended: \"gemini-2.5-pro\" (default) or \"gemini-2.5-flash\". Both models are confirmed to work with Google login.",
+        "sessionId": "Session ID to resume a previous conversation. Use listSessions to get available session IDs."
       }
     },
     "chat": {
@@ -39,7 +40,19 @@
         "prompt": "Additional instructions for analyzing the file. If not provided, Gemini will provide a general analysis.",
         "sandbox": "Run gemini-cli in sandbox mode.",
         "yolo": "Automatically accept all actions (aka YOLO mode).",
-        "model": "The Gemini model to use. Recommended: \"gemini-2.5-pro\" (default) or \"gemini-2.5-flash\". Both models are confirmed to work with Google login."
+        "model": "The Gemini model to use. Recommended: \"gemini-2.5-pro\" (default) or \"gemini-2.5-flash\". Both models are confirmed to work with Google login.",
+        "sessionId": "Session ID to resume a previous conversation. Use listSessions to get available session IDs."
+      }
+    },
+    "executeTask": {
+      "description": "Executes a task using gemini-cli with edit permissions. Use for code generation, file editing, or command execution.",
+      "params": {
+        "task": "The task description to execute.",
+        "files": "Optional file paths relevant to the task.",
+        "sessionId": "Session ID to resume a previous conversation. Use listSessions to get available session IDs.",
+        "model": "The Gemini model to use. Recommended: \"gemini-2.5-pro\" (default) or \"gemini-2.5-flash\". Both models are confirmed to work with Google login.",
+        "sandbox": "Run in sandbox mode. Default: false (allows editing).",
+        "yolo": "Automatically accept all actions (aka YOLO mode)."
       }
     }
   }
