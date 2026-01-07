@@ -54,6 +54,17 @@
         "sandbox": "Run in sandbox mode. Default: false (allows editing).",
         "yolo": "Automatically accept all actions (aka YOLO mode)."
       }
+    },
+    "streamingTask": {
+      "description": "Executes a task with real-time event monitoring using stream-json output. Returns detailed execution events including tool calls and their results.",
+      "params": {
+        "task": "The task description to execute.",
+        "files": "Optional file paths relevant to the task.",
+        "approvalMode": "Approval mode for tool calls: 'yolo' (auto-approve all), 'auto_edit' (auto-approve edits only). Default: 'auto_edit'.",
+        "model": "The Gemini model to use.",
+        "cwd": "The working directory to execute the task in.",
+        "sessionId": "Session ID to resume a previous conversation."
+      }
     }
   }
 }
