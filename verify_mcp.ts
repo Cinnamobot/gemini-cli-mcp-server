@@ -1,5 +1,5 @@
-import { spawn } from "child_process";
-import { createInterface } from "readline";
+import { spawn } from "node:child_process";
+import { createInterface } from "node:readline";
 
 const serverProcess = spawn("bun", ["run", "index.ts"], {
   stdio: ["pipe", "pipe", "inherit"],
