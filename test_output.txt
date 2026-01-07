@@ -1,61 +1,47 @@
 bun test v1.3.5 (1e86cebd)
 
 tests\integration\tools.test.ts:
-29 |       // Test with npx fallback
-30 |       const cmdWithNpx = await decideGeminiCliCommand(true);
-31 |       // Command is either full path containing "gemini" or "npx"
-32 |       const isGemini = cmdWithNpx.command.includes("gemini");
-33 |       const isNpx = cmdWithNpx.command === "npx";
-34 |       expect(isGemini || isNpx).toBe(true);
-                                     ^
-error: expect(received).toBe(expected)
+(pass) MCP Gemini CLI Integration Tests > gemini-cli detection > decideGeminiCliCommand finds gemini-cli or falls back correctly [31.00ms]
+killed 1 dangling process
+(fail) MCP Gemini CLI Integration Tests > gemini-cli detection > executeGeminiCli handles errors correctly [5015.00ms]
+  ^ this test timed out after 5000ms.
+(skip) MCP Gemini CLI Integration Tests > tool execution > googleSearchTool executes without error
+(skip) MCP Gemini CLI Integration Tests > tool execution > chatTool executes without error
+(pass) MCP Gemini CLI Integration Tests > tool execution > gemini-cli not available
+118 | 2. 縺薙ｓ縺ｫ縺｡縺ｯ繝・せ繝・14 minutes ago)[9ec64691 - 53cb - 4fa3 - b7df - a121b6dcef54]
+119 | 3. Project discussion(2 hours ago)[abc12345 - abcd - 1234 - ef56 - 7890abcdef12]
+120 | `;
+121 |       const sessions = parseSessionsOutput(sampleOutput);
+122 | 
+123 |       expect(sessions).toHaveLength(3);
+                             ^
+error: expect(received).toHaveLength(expected)
 
-Expected: true
-Received: false
+Expected length: 3
+Received length: 0
 
-      at <anonymous> (C:\tools\gemini-cli-mcp-server\tests\integration\tools.test.ts:34:33)
-(fail) MCP Gemini CLI Integration Tests > gemini-cli detection > decideGeminiCliCommand finds gemini-cli or falls back correctly
-DEBUG: Spawning gemini with args: [ "--invalid-flag-that-does-not-exist" ]
-(pass) MCP Gemini CLI Integration Tests > gemini-cli detection > executeGeminiCli handles errors correctly [16.00ms]
-DEBUG: Spawning cmd.exe with args: [ "/c", "C:\\Program Files\\nodejs\\gemini.cmd", "-p",
-  "Search for: \"test search\" and return the results in the following JSON format:\n{\n  \"test search\": {\n    \"summary\": \"Brief summary of findings\",\n    \"groundingMetadata\": {\n      \"searchQueries\": [\"list of search queries used\"],\n      \"sources\": [\n        {\n          \"url\": \"source URL\",\n          \"title\": \"source domain/title\",\n          \"relevantExcerpts\": [\"key excerpts from this source\"]\n        }\n      ]\n    }\n  }\n}\nLimit to 3 sources.",
-  "-s", "-y", "-m", "gemini-2.5-flash"
-]
-109 | 
-110 |     child.on("close", (code) => {
-111 |       if (code === 0) {
-112 |         resolve(stdout);
-113 |       } else {
-114 |         reject(new Error(`gemini exited with code ${code}: ${stderr}`));
-                         ^
-error: gemini exited with code 1: 'C:\Program' is not recognized as an internal or external command,
-operable program or batch file.
+      at <anonymous> (C:\tools\gemini-cli-mcp-server\tests\integration\tools.test.ts:123:24)
+(fail) MCP Gemini CLI Integration Tests > session management > parseSessionsOutput parses session list correctly
+(pass) MCP Gemini CLI Integration Tests > session management > parseSessionsOutput handles empty output
+150 | Invalid line without brackets
+151 | Another invalid line
+152 | 2. Another valid(2 days ago)[another - id]`;
+153 |       const sessions = parseSessionsOutput(sampleOutput);
+154 | 
+155 |       expect(sessions).toHaveLength(2);
+                             ^
+error: expect(received).toHaveLength(expected)
 
-      at <anonymous> (C:\tools\gemini-cli-mcp-server\index.ts:114:20)
-      at emit (node:events:98:22)
-      at #maybeClose (node:child_process:778:16)
-      at #handleOnExit (node:child_process:532:72)
-(fail) MCP Gemini CLI Integration Tests > tool execution > googleSearchTool executes without error [15.00ms]
-DEBUG: Spawning cmd.exe with args: [ "/c", "C:\\Program Files\\nodejs\\gemini.cmd", "-p",
-  "Say hello", "-s", "-y", "-m", "gemini-2.5-flash"
-]
-109 | 
-110 |     child.on("close", (code) => {
-111 |       if (code === 0) {
-112 |         resolve(stdout);
-113 |       } else {
-114 |         reject(new Error(`gemini exited with code ${code}: ${stderr}`));
-                         ^
-error: gemini exited with code 1: 'C:\Program' is not recognized as an internal or external command,
-operable program or batch file.
+Expected length: 2
+Received length: 0
 
-      at <anonymous> (C:\tools\gemini-cli-mcp-server\index.ts:114:20)
-      at emit (node:events:98:22)
-      at #maybeClose (node:child_process:778:16)
-      at #handleOnExit (node:child_process:532:72)
-(fail) MCP Gemini CLI Integration Tests > tool execution > chatTool executes without error [32.00ms]
+      at <anonymous> (C:\tools\gemini-cli-mcp-server\tests\integration\tools.test.ts:155:24)
+(fail) MCP Gemini CLI Integration Tests > session management > parseSessionsOutput handles malformed lines
+(skip) MCP Gemini CLI Integration Tests > session management > executeListSessions returns structured data
+(skip) MCP Gemini CLI Integration Tests > session management > executeParallelTasks integration > executes multiple tasks in parallel
 
- 1 pass
+ 3 pass
+ 4 skip
  3 fail
- 6 expect() calls
-Ran 4 tests across 1 file. [205.00ms]
+ 7 expect() calls
+Ran 10 tests across 1 file. [5.26s]

@@ -1,0 +1,21 @@
+bun test v1.3.5 (1e86cebd)
+
+tests\integration\tools.test.ts:
+(pass) MCP Gemini CLI Integration Tests > gemini-cli detection > decideGeminiCliCommand finds gemini-cli or falls back correctly [15.00ms]
+killed 1 dangling process
+(fail) MCP Gemini CLI Integration Tests > gemini-cli detection > executeGeminiCli handles errors correctly [5016.00ms]
+  ^ this test timed out after 5000ms.
+(skip) MCP Gemini CLI Integration Tests > tool execution > googleSearchTool executes without error
+(skip) MCP Gemini CLI Integration Tests > tool execution > chatTool executes without error
+(pass) MCP Gemini CLI Integration Tests > tool execution > gemini-cli not available
+(pass) MCP Gemini CLI Integration Tests > session management > parseSessionsOutput parses session list correctly
+(pass) MCP Gemini CLI Integration Tests > session management > parseSessionsOutput handles empty output
+(pass) MCP Gemini CLI Integration Tests > session management > parseSessionsOutput handles malformed lines
+(skip) MCP Gemini CLI Integration Tests > session management > executeListSessions returns structured data
+(skip) MCP Gemini CLI Integration Tests > session management > executeParallelTasks integration > executes multiple tasks in parallel
+
+ 5 pass
+ 4 skip
+ 1 fail
+ 18 expect() calls
+Ran 10 tests across 1 file. [5.22s]

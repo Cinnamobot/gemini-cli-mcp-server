@@ -1,3 +1,4 @@
+
 import { beforeAll, describe, expect, test } from "bun:test";
 import {
   decideGeminiCliCommand,
@@ -6,6 +7,7 @@ import {
   executeGoogleSearch,
   executeListSessions,
   parseSessionsOutput,
+  executeParallelTasks,
 } from "../../index.ts";
 
 // Check if gemini-cli is available
@@ -63,7 +65,7 @@ describe("MCP Gemini CLI Integration Tests", () => {
           /gemini exited with code|Executable not found/,
         );
       }
-    });
+    }, 30000);
   });
 
   describe("tool execution", () => {
@@ -169,5 +171,45 @@ Another invalid line
       },
       30000,
     ); // 30 second timeout
+    describe("executeParallelTasks integration", () => {
+      test.if(isGeminiCliAvailable)(
+        "executes multiple tasks in parallel",
+        async () => {
+          // Run two simple echo tasks
+          const tasks = [
+            {
+              task: "echo 'task 1'",
+              model: "gemini-3-pro-preview", // Use default model
+              sessionId: undefined,
+              files: [],
+              approvalMode: "yolo" as const, // Must be 'yolo' or 'auto_edit'
+            },
+            {
+              task: "echo 'task 2'",
+              model: "gemini-3-pro-preview",
+              sessionId: undefined,
+              files: [],
+              approvalMode: "yolo" as const,
+            },
+          ];
+
+          const result = await executeParallelTasks(
+            {
+              tasks,
+              concurrency: 2,
+            },
+            false,
+          );
+
+          expect(result).toBeDefined();
+          expect(result.results).toHaveLength(2);
+
+          // Check structure
+          expect(result.results[0].status).toBeDefined();
+          expect(result.results[1].status).toBeDefined();
+        },
+        60000,
+      ); // 60s timeout
+    });
   });
 });

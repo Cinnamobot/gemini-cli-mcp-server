@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import spawn from "cross-spawn";
+import pLimit from "p-limit";
 import { existsSync, statSync } from "node:fs";
 import { extname, join } from "node:path";
 import { z } from "zod";
@@ -308,6 +309,18 @@ export const StreamingTaskParametersSchema = z.object({
     ),
 });
 
+// Zod schema for parallelTasks tool parameters
+export const ParallelTasksParametersSchema = z.object({
+  tasks: z
+    .array(StreamingTaskParametersSchema)
+    .describe("List of tasks to execute in parallel."),
+  concurrency: z
+    .number()
+    .optional()
+    .default(4)
+    .describe("Maximum number of concurrent tasks. Default: 4."),
+});
+
 // Extracted tool execution functions for testing
 export async function executeGoogleSearch(args: unknown, allowNpx = false) {
   const parsedArgs = GoogleSearchParametersSchema.parse(args);
@@ -511,6 +524,22 @@ export async function executeStreamingTask(
       reject(err);
     });
   });
+}
+
+// Execute multiple tasks in parallel
+export async function executeParallelTasks(
+  args: unknown,
+  allowNpx = false,
+): Promise<{ results: StreamingTaskResult[] }> {
+  const parsedArgs = ParallelTasksParametersSchema.parse(args);
+  const limit = pLimit(parsedArgs.concurrency);
+
+  const promises = parsedArgs.tasks.map((taskArgs) => {
+    return limit(() => executeStreamingTask(taskArgs, allowNpx));
+  });
+
+  const results = await Promise.all(promises);
+  return { results };
 }
 
 // Parse the output of gemini --list-sessions into structured data
@@ -902,6 +931,26 @@ async function main() {
     },
     async (args) => {
       const result = await executeStreamingTask(args, allowNpx);
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    },
+  );
+
+  // Register parallelTasks tool
+  server.registerTool(
+    "parallelTasks",
+    {
+      description: locale.tools.parallelTasks?.description || "Executes multiple tasks in parallel.",
+      inputSchema: ParallelTasksParametersSchema,
+    },
+    async (args) => {
+      const result = await executeParallelTasks(args, allowNpx);
       return {
         content: [
           {

@@ -65,6 +65,13 @@
         "cwd": "タスクを実行する作業ディレクトリ。",
         "sessionId": "前回の会話を再開するためのセッションID。"
       }
+    },
+    "parallelTasks": {
+      "description": "複数のタスクを並列に実行します。各タスクの結果はまとめて返されます。開発効率化のために使用してください。",
+      "params": {
+        "tasks": "並列実行するタスクのリスト（StreamingTaskParametersSchema準拠）。",
+        "concurrency": "最大同時実行数。デフォルトは4です。"
+      }
     }
   }
 }

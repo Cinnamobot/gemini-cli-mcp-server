@@ -65,6 +65,13 @@
         "cwd": "The working directory to execute the task in.",
         "sessionId": "Session ID to resume a previous conversation."
       }
+    },
+    "parallelTasks": {
+      "description": "Executes multiple tasks in parallel. Results for each task are returned in an aggregated list.",
+      "params": {
+        "tasks": "List of tasks to execute in parallel (StreamingTaskParametersSchema).",
+        "concurrency": "Maximum number of concurrent tasks. Default: 4."
+      }
     }
   }
 }
